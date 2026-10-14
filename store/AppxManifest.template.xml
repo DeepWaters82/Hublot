@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Manifeste du paquet Microsoft Store de Hublot. Modèle : build-store.ps1 remplace les {Valeurs} par
+  celles de identity.ini et la version des exécutables, puis écrit AppxManifest.xml dans le paquet.
+
+  Deux applications dans un seul paquet :
+  - « Hublot » (HublotCore.exe) : les paramètres, seule entrée du menu Démarrer ;
+  - « HublotService » (Hublot.exe) : l'icône de notification et les popups, lancé par la tâche de démarrage
+    (activée par défaut, désactivable dans les paramètres ou le Gestionnaire des tâches) et par les paramètres.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap5 rescap">
+
+  <Identity Name="{IdentityName}" Publisher="{Publisher}" Version="{Version}" ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Hublot</DisplayName>
+    <PublisherDisplayName>{PublisherDisplayName}</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="fr-FR" />
+    <Resource Language="en-US" />
+  </Resources>
+
+  <Applications>
+    <Application Id="Hublot" Executable="HublotCore.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="Hublot" Description="Hublot"
+                          BackgroundColor="transparent"
+                          Square150x150Logo="Assets\Square150x150Logo.png"
+                          Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+      </uap:VisualElements>
+    </Application>
+
+    <Application Id="HublotService" Executable="Hublot.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="Hublot" Description="Hublot"
+                          BackgroundColor="transparent" AppListEntry="none"
+                          Square150x150Logo="Assets\Square150x150Logo.png"
+                          Square44x44Logo="Assets\Square44x44Logo.png" />
+      <Extensions>
+        <uap5:Extension Category="windows.startupTask" Executable="Hublot.exe" EntryPoint="Windows.FullTrustApplication">
+          <uap5:StartupTask TaskId="HublotStartup" Enabled="true" DisplayName="Hublot" />
+        </uap5:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

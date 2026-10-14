@@ -1,0 +1,829 @@
+<Window x:Class="HublotCore.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:HublotCore"
+        Title="Hublot"
+        Width="1000" Height="740" MinWidth="560" MinHeight="420"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <DataTemplate x:Key="DeviceRow">
+            <Border Style="{StaticResource RowBorder}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource IconFont}" FontSize="18" VerticalAlignment="Center" Margin="2,0,16,0" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Details}" Style="{StaticResource Secondary}" />
+                    </StackPanel>
+                    <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding Notify}"
+                              ToolTip="{local:Tr PopupsPourCetAppareil}" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="NavColumn" Width="250" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Volet de navigation (réduit aux icônes dans une fenêtre étroite) -->
+        <DockPanel Margin="10,6,6,10">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="12,8,0,18">
+                <Image Source="{StaticResource HublotLogo}" Width="28" Height="28" />
+                <TextBlock x:Name="NavTitle" Text="Hublot" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" Margin="12,0,0,0" />
+            </StackPanel>
+            <Grid>
+            <ListBox x:Name="Nav" BorderThickness="0" Background="Transparent" SelectionChanged="OnNavigate"
+                     ItemContainerStyle="{StaticResource NavItem}">
+                <ListBoxItem Tag="Home" IsSelected="True">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE80F;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr Accueil}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="General">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE713;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr General}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="Appearance">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE790;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr Apparence}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem IsEnabled="False" Focusable="False">
+                    <TextBlock Text="{local:Tr Modules}" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="-4,10,0,0" />
+                </ListBoxItem>
+                <ListBoxItem Tag="Devices">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE702;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr AppareilsSansFil}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="Notifications">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xEA8F;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr NotificationsDAppareils}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="NowPlaying">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8D6;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr LectureEnCours}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="Usb">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE88E;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr PeripheriquesUsb}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="Displays">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE7F4;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr Ecrans}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="Power">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xEA93;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr Alimentation}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem IsEnabled="False" Focusable="False" Height="8" />
+                <ListBoxItem Tag="About">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE946;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr APropos}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+            </ListBox>
+            <!-- Barre de sélection : glisse d'un élément à l'autre (MainWindow.MovePill) -->
+            <Canvas x:Name="NavOverlay" IsHitTestVisible="False">
+                <Border x:Name="NavPill" Width="3" Height="16" CornerRadius="1.5" Visibility="Hidden"
+                        Background="{DynamicResource AccentFillColorDefaultBrush}" />
+            </Canvas>
+            </Grid>
+        </DockPanel>
+
+        <!-- Zone de contenu -->
+        <Border Grid.Column="1" CornerRadius="8,0,0,0" BorderThickness="1,1,0,0"
+                Background="{DynamicResource LayerFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}">
+            <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto">
+                <Grid x:Name="PageContent" Margin="40,28,40,40" MaxWidth="1000">
+
+                    <!-- ═══ Accueil ═══ -->
+                    <StackPanel x:Name="HomePage">
+                        <TextBlock Text="{local:Tr Accueil}" Style="{StaticResource PageTitle}" />
+                        <Border Style="{StaticResource CardBorder}" Padding="16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Ellipse x:Name="StatusDot" Width="10" Height="10" VerticalAlignment="Center" Margin="6,0,18,0" />
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock x:Name="StatusTitle" FontSize="14" />
+                                    <TextBlock x:Name="StatusText" Style="{StaticResource Secondary}" />
+                                </StackPanel>
+                                <Button x:Name="StartButton" Grid.Column="2" Content="{local:Tr Demarrer}" Padding="16,6" Click="OnStartService"
+                                        Style="{DynamicResource AccentButtonStyle}" />
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="{local:Tr Modules}" Style="{StaticResource SectionHeader}" />
+                        <Border Style="{StaticResource CardBorder}" Padding="20,18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="48" Height="48" CornerRadius="12" Background="{StaticResource WindowsBlue}" VerticalAlignment="Top" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleBluetooth}"><TextBlock Text="&#xE702;" FontFamily="{StaticResource IconFont}" FontSize="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,16,0" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleBluetooth}">
+                                    <TextBlock Text="{local:Tr AppareilsSansFil}" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Text="{local:Tr BatterieEtConnexionDesAppareils}" Style="{StaticResource Secondary}" FontSize="13" Margin="0,4,0,0" />
+                                    <Button Content="{local:Tr Configurer}" Tag="Devices" Click="OnConfigure" Padding="12,4" Margin="0,10,0,0" HorizontalAlignment="Left" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleBluetooth}" VerticalAlignment="Top" />
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Padding="20,18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="48" Height="48" CornerRadius="12" Background="{StaticResource WindowsBlue}" VerticalAlignment="Top" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleNowPlaying}"><TextBlock Text="&#xE8D6;" FontFamily="{StaticResource IconFont}" FontSize="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,16,0" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleNowPlaying}">
+                                    <TextBlock Text="{local:Tr LectureEnCours}" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Text="{local:Tr AfficheLeTitreEtL}" Style="{StaticResource Secondary}" FontSize="13" Margin="0,4,0,0" />
+                                    <Button Content="{local:Tr Configurer}" Tag="NowPlaying" Click="OnConfigure" Padding="12,4" Margin="0,10,0,0" HorizontalAlignment="Left" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleNowPlaying}" VerticalAlignment="Top" />
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Padding="20,18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="48" Height="48" CornerRadius="12" Background="{StaticResource WindowsBlue}" VerticalAlignment="Top" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleUsb}"><TextBlock Text="&#xE88E;" FontFamily="{StaticResource IconFont}" FontSize="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,16,0" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleUsb}">
+                                    <TextBlock Text="{local:Tr PeripheriquesUsb}" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Text="{local:Tr NomEtEtatDesPeripheriques}" Style="{StaticResource Secondary}" FontSize="13" Margin="0,4,0,0" />
+                                    <Button Content="{local:Tr Configurer}" Tag="Usb" Click="OnConfigure" Padding="12,4" Margin="0,10,0,0" HorizontalAlignment="Left" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleUsb}" VerticalAlignment="Top" />
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Padding="20,18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="48" Height="48" CornerRadius="12" Background="{StaticResource WindowsBlue}" VerticalAlignment="Top" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleDisplays}"><TextBlock Text="&#xE7F4;" FontFamily="{StaticResource IconFont}" FontSize="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,16,0" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleDisplays}">
+                                    <TextBlock Text="{local:Tr Ecrans}" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Text="{local:Tr NomConnectiqueEtResolutionD}" Style="{StaticResource Secondary}" FontSize="13" Margin="0,4,0,0" />
+                                    <Button Content="{local:Tr Configurer}" Tag="Displays" Click="OnConfigure" Padding="12,4" Margin="0,10,0,0" HorizontalAlignment="Left" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleDisplays}" VerticalAlignment="Top" />
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Padding="20,18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="48" Height="48" CornerRadius="12" Background="{StaticResource WindowsBlue}" VerticalAlignment="Top" Style="{StaticResource ModuleDim}" Tag="{Binding ModulePower}"><TextBlock Text="&#xEA93;" FontFamily="{StaticResource IconFont}" FontSize="24" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,16,0" Style="{StaticResource ModuleDim}" Tag="{Binding ModulePower}">
+                                    <TextBlock Text="{local:Tr Alimentation}" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Text="{local:Tr NomDuPcEtCharge}" Style="{StaticResource Secondary}" FontSize="13" Margin="0,4,0,0" />
+                                    <Button Content="{local:Tr Configurer}" Tag="Power" Click="OnConfigure" Padding="12,4" Margin="0,10,0,0" HorizontalAlignment="Left" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModulePower}" VerticalAlignment="Top" />
+                            </Grid>
+                        </Border>
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="2,12,0,0" />
+                    </StackPanel>
+
+                    <!-- ═══ Général ═══ -->
+                    <StackPanel x:Name="GeneralPage" Visibility="Collapsed">
+                        <TextBlock Text="{local:Tr General}" Style="{StaticResource PageTitle}" />
+
+
+                        <local:SettingsCard Icon="&#xE774;" Header="{local:Tr Language}" Description="{local:Tr LanguageDescription}">
+                            <ComboBox SelectedIndex="{Binding LanguageIndex}" Width="260">
+                                <ComboBoxItem Content="{local:Tr LanguageAuto}" />
+                                <ComboBoxItem Content="{local:Tr LanguageFrench}" />
+                                <ComboBoxItem Content="{local:Tr LanguageEnglish}" />
+                            </ComboBox>
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr Demarrage}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE7E8;" Header="{local:Tr LancerAuDemarrageDeWindows}"
+                                            Description="{local:Tr DemarreHublotALOuverture}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding StartWithWindows}" />
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr Popup}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE916;" Header="{local:Tr DureeDAffichage}"
+                                            Description="{local:Tr LePopupResteAussiAffiche}">
+                            <StackPanel Orientation="Horizontal">
+                                <Slider Width="200" Minimum="2" Maximum="15" TickFrequency="1" IsSnapToTickEnabled="True"
+                                        Value="{Binding DurationSeconds}" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding DurationSeconds, StringFormat={}{0} s}" Width="40" TextAlignment="Right" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE7C9;" Header="{local:Tr ClicSurLePopup}"
+                                            Description="{local:Tr FermerLePopupOuOuvrir}">
+                            <ComboBox SelectedIndex="{Binding ClickActionIndex}" Width="260">
+                                <ComboBoxItem Content="{local:Tr FermerLePopup}" />
+                                <ComboBoxItem Content="{local:Tr OuvrirLesParametresBluetooth}" />
+                            </ComboBox>
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr AppareilsConnectes}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE765;" Header="{local:Tr RaccourciClavier}"
+                                            Description="{local:Tr AfficheTousLesAppareilsConnectes}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox x:Name="HotkeyBox" Width="170" IsReadOnly="True" Text="{Binding HotkeyText, Mode=OneWay}"
+                                         TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,16,0" Cursor="Hand"
+                                         PreviewKeyDown="OnHotkeyKeyDown" IsEnabled="{Binding HotkeyEnabled}" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding HotkeyEnabled}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE7EF;" Header="{local:Tr SurvolDeLIconeDe}"
+                                            Description="{local:Tr LesAppareilsConnectesEtLeur}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding HoverList}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE703;" Header="{local:Tr AfficherAussiLesAppareilsDeconnectes}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding HoverShowDisconnected}" IsEnabled="{Binding HoverList}" />
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr NePasDeranger}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE740;" Header="{local:Tr NePasAfficherPendantUne}"
+                                            Description="{local:Tr JeuxVideosPresentationsLesModules}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding HideInFullscreen}" />
+                        </local:SettingsCard>
+                    </StackPanel>
+
+                    <!-- ═══ Notifications ═══ -->
+                    <StackPanel x:Name="NotificationsPage" Visibility="Collapsed">
+                        <TextBlock Text="{local:Tr Notifications}" Style="{StaticResource PageTitle}" />
+                        <Border Style="{StaticResource ModuleOffNotice}" Tag="{Binding ModuleBluetooth}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <TextBlock Text="{local:Tr ModuleDesactive}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Style="{StaticResource ModuleOptions}" IsEnabled="{Binding ModuleBluetooth}">
+
+                        <TextBlock Text="{local:Tr Connexion}" Style="{StaticResource SectionHeader}" Margin="2,0,0,8" />
+                        <local:SettingsCard Icon="&#xE8FB;" Header="{local:Tr ConnexionDUnAppareil}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding NotifyConnect}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE8D8;" Header="{local:Tr DeconnexionDUnAppareil}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ShowDisconnections}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE710;" Header="{local:Tr NouveauPeripheriqueDetecte}"
+                                            Description="{local:Tr PremiereConnexionDUnAppareil}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding NotifyNewDevice}" />
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr Batterie}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE850;" Header="{local:Tr BatterieFaible}"
+                                            Description="{local:Tr UneAlerteParDecharge}">
+                            <StackPanel Orientation="Horizontal">
+                                <Slider Width="150" Minimum="5" Maximum="50" TickFrequency="5" IsSnapToTickEnabled="True"
+                                        Value="{Binding LowBatteryThreshold}" VerticalAlignment="Center" IsEnabled="{Binding NotifyLowBattery}" />
+                                <TextBlock Text="{Binding LowBatteryThreshold, StringFormat={}{0} %}" Width="44" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding NotifyLowBattery}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE945;" Header="{local:Tr MiseEnCharge}"
+                                            Description="{local:Tr QuandUnAppareilCommenceA}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding NotifyCharging}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE83F;" Header="{local:Tr NiveauDeChargeAtteint}"
+                                            Description="{local:Tr QuandLaBatterieAtteintCe}">
+                            <StackPanel Orientation="Horizontal">
+                                <Slider Width="150" Minimum="50" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True"
+                                        Value="{Binding ChargeTarget}" VerticalAlignment="Center" IsEnabled="{Binding NotifyChargeTarget}" />
+                                <TextBlock Text="{Binding ChargeTarget, StringFormat={}{0} %}" Width="44" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding NotifyChargeTarget}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr NePasDeranger}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE7E8;" Header="{local:Tr IgnorerLesAppareilsConnectesAu}"
+                                            Description="{local:Tr PasDePopupPourLes}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding IgnoreStartupConnections}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE708;" Header="{local:Tr IgnorerLesReconnexionsApresLa}"
+                                            Description="{local:Tr PasDePopupALa}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding IgnoreResumeConnections}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE765;" Header="{local:Tr IgnorerLaVeilleDesClaviers}"
+                                            Description="{local:Tr PasDePopupQuandIls}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding QuietInputSleep}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE74F;" Header="{local:Tr AppareilsEnSourdine}"
+                                            Description="{local:Tr ChoisissezLesAppareilsAutorisesA}">
+                            <Button Content="{local:Tr OuvrirLaPageAppareils}" Padding="14,6" Click="OnOpenDevices" />
+                        </local:SettingsCard>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ═══ Apparence ═══ -->
+                    <StackPanel x:Name="AppearancePage" Visibility="Collapsed">
+                        <DockPanel Margin="0,0,0,20">
+                            <StackPanel x:Name="AppearanceActions" DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Padding="14,6" Click="OnPreview" Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                        <TextBlock Text="{local:Tr Apercu}" Margin="8,0,0,0" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Padding="14,6" Click="OnPreviewMedia" Margin="0,0,8,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE8D6;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                        <TextBlock Text="{local:Tr LectureEnCours}" Margin="8,0,0,0" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Padding="14,6" Click="OnPreviewList">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE8FD;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                        <TextBlock Text="{local:Tr ApercuDeLaListe}" Margin="8,0,0,0" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                            <TextBlock Text="{local:Tr Apparence}" Style="{StaticResource PageTitle}" Margin="0" />
+                        </DockPanel>
+
+                        <TextBlock Text="{local:Tr Emplacement}" Style="{StaticResource SectionHeader}" Margin="2,0,0,8" />
+                        <Border Style="{StaticResource CardBorder}" Padding="16">
+                            <!-- Côte à côte, ou l'un sous l'autre dans une fenêtre étroite. -->
+                            <WrapPanel>
+                                <StackPanel Margin="0,0,28,8">
+                                    <Border Width="300" Height="172" CornerRadius="8" BorderThickness="1"
+                                            BorderBrush="{DynamicResource ControlStrongStrokeColorDefaultBrush}"
+                                            Background="{DynamicResource SubtleFillColorSecondaryBrush}">
+                                        <Grid x:Name="Spots">
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="*" />
+                                                <RowDefinition Height="14" />
+                                            </Grid.RowDefinitions>
+                                            <RadioButton Style="{StaticResource SpotButton}" Tag="TopLeft" HorizontalAlignment="Left" VerticalAlignment="Top" ToolTip="{local:Tr EnHautAGauche}" Checked="OnSpot" />
+                                            <RadioButton Style="{StaticResource SpotButton}" Tag="TopCenter" HorizontalAlignment="Center" VerticalAlignment="Top" ToolTip="{local:Tr EnHautAuCentre}" Checked="OnSpot" />
+                                            <RadioButton Style="{StaticResource SpotButton}" Tag="TopRight" HorizontalAlignment="Right" VerticalAlignment="Top" ToolTip="{local:Tr EnHautADroite}" Checked="OnSpot" />
+                                            <RadioButton Style="{StaticResource SpotButton}" Tag="BottomLeft" HorizontalAlignment="Left" VerticalAlignment="Bottom" ToolTip="{local:Tr EnBasAGauche}" Checked="OnSpot" />
+                                            <RadioButton Style="{StaticResource SpotButton}" Tag="BottomCenter" HorizontalAlignment="Center" VerticalAlignment="Bottom" ToolTip="{local:Tr EnBasAuCentre}" Checked="OnSpot" />
+                                            <RadioButton Style="{StaticResource SpotButton}" Tag="BottomRight" HorizontalAlignment="Right" VerticalAlignment="Bottom" ToolTip="{local:Tr EnBasADroite}" Checked="OnSpot" />
+                                            <Border Grid.Row="1" CornerRadius="0,0,7,7" Background="{DynamicResource ControlStrongFillColorDisabledBrush}">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <Border Width="7" Height="7" CornerRadius="2" Margin="2,0" Background="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                    <Border Width="7" Height="7" CornerRadius="2" Margin="2,0" Background="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                    <Border Width="7" Height="7" CornerRadius="2" Margin="2,0" Background="{DynamicResource TextFillColorTertiaryBrush}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock x:Name="SpotLabel" Style="{StaticResource Secondary}" HorizontalAlignment="Center" Margin="0,8,0,0" />
+                                </StackPanel>
+                                <StackPanel VerticalAlignment="Center" Margin="0,0,0,8">
+                                    <TextBlock Text="{local:Tr Ecran}" FontSize="14" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,18">
+                                        <ComboBox ItemsSource="{Binding MonitorChoices}" SelectedIndex="{Binding MonitorChoiceIndex}" Width="300" />
+                                        <Button Content="{local:Tr Identifier}" Padding="12,4" Margin="8,0,0,0" Click="OnIdentifyScreens" />
+                                    </StackPanel>
+                                    <TextBlock Text="{local:Tr DistanceAuBordDeL}" FontSize="14" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <Slider Width="220" Minimum="0" Maximum="64" TickFrequency="2" IsSnapToTickEnabled="True" Value="{Binding Margin}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Margin, StringFormat={}{0} px}" Width="48" TextAlignment="Right" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource Secondary}" Margin="0,14,0,0" MaxWidth="300" HorizontalAlignment="Left"
+                                               Text="{local:Tr ListeDesAppareilsCartesEmpilees}" />
+                                </StackPanel>
+                            </WrapPanel>
+                        </Border>
+
+                        <TextBlock Text="{local:Tr Style}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE7F7;" Header="{local:Tr Materiau}"
+                                            Description="{local:Tr AcryliqueEtMicaFondFloute}">
+                            <ComboBox x:Name="MaterialBox" SelectedIndex="{Binding MaterialIndex}" Width="180">
+                                <ComboBoxItem x:Name="AcrylicItem" Content="{local:Tr Acrylique}" />
+                                <ComboBoxItem x:Name="MicaItem" Content="{local:Tr Mica}" />
+                                <ComboBoxItem Content="{local:Tr Uni}" />
+                            </ComboBox>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xEF1F;" Header="{Binding OpacityHeader}" Description="{Binding OpacityDescription}">
+                            <StackPanel Orientation="Horizontal">
+                                <Slider Width="200" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding Opacity}" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Opacity, StringFormat={}{0} %}" Width="48" TextAlignment="Right" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE793;" Header="{local:Tr Theme}" Description="{local:Tr SystemeSuitLeModeDe}">
+                            <ComboBox SelectedIndex="{Binding ThemeIndex}" Width="180">
+                                <ComboBoxItem Content="{local:Tr Systeme}" />
+                                <ComboBoxItem Content="{local:Tr Clair}" />
+                                <ComboBoxItem Content="{local:Tr Sombre}" />
+                            </ComboBox>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE790;" Header="{local:Tr CouleurDAccentuation}" Description="{local:Tr TuileDIconeEtJauge}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding UseAccentColor}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE8FB;" Header="{local:Tr AfficherLeTypeDeLiaison}" Description="{local:Tr ConnecteBluetoothOuConnecteRecepteur}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ShowLinkType}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE740;" Header="{local:Tr Taille}">
+                            <ComboBox SelectedIndex="{Binding SizeIndex}" Width="180">
+                                <ComboBoxItem Content="{local:Tr Compacte}" />
+                                <ComboBoxItem Content="{local:Tr Normale}" />
+                                <ComboBoxItem Content="{local:Tr Grande}" />
+                            </ComboBox>
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr Animation}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE945;" Header="{local:Tr EntreeEtSortie}"
+                                            Description="{local:Tr GlissementDepuisLeBordLe}">
+                            <ComboBox SelectedIndex="{Binding AnimationIndex}" Width="180">
+                                <ComboBoxItem Content="{local:Tr Glissement}" />
+                                <ComboBoxItem Content="{local:Tr Fondu}" />
+                                <ComboBoxItem Content="{local:Tr Aucune}" />
+                            </ComboBox>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xEC4A;" Header="{local:Tr Vitesse}">
+                            <ComboBox SelectedIndex="{Binding SpeedIndex}" Width="180">
+                                <ComboBoxItem Content="{local:Tr Rapide}" />
+                                <ComboBoxItem Content="{local:Tr Normale}" />
+                                <ComboBoxItem Content="{local:Tr Lente}" />
+                            </ComboBox>
+                        </local:SettingsCard>
+
+                    </StackPanel>
+
+                    <!-- ═══ Appareils ═══ -->
+                    <StackPanel x:Name="DevicesPage" Visibility="Collapsed">
+                        <DockPanel Margin="0,0,0,20">
+                            <Button DockPanel.Dock="Right" Padding="14,6" Click="OnRefreshDevices" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                    <TextBlock Text="{local:Tr Actualiser}" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Text="{local:Tr AppareilsSansFil}" Style="{StaticResource PageTitle}" Margin="0" />
+                        </DockPanel>
+                        <local:SettingsCard Icon="&#xE702;" Header="{local:Tr ModuleAppareilsSansFil}"
+                                            Description="{local:Tr DesactiveIlNeSurveilleRien}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleBluetooth}" />
+                        </local:SettingsCard>
+                        <Border Style="{StaticResource ModuleOffNotice}" Tag="{Binding ModuleBluetooth}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <TextBlock Text="{local:Tr ModuleDesactive}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Style="{StaticResource ModuleOptions}" IsEnabled="{Binding ModuleBluetooth}">
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="2,0,0,4"
+                                   Text="{local:Tr DesactivezUnAppareilPourNe}" />
+
+                        <TextBlock Text="{local:Tr Bluetooth}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE702;" Header="{local:Tr AppareilsBluetooth}"
+                                            Description="{local:Tr AppareilsAppairesAWindows}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding Bluetooth}" />
+                        </local:SettingsCard>
+                        <ItemsControl ItemsSource="{Binding BluetoothDevices}" ItemTemplate="{StaticResource DeviceRow}" Margin="24,0,0,0" />
+
+                        <TextBlock Text="{local:Tr DonglesUsb}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE88E;" Header="{local:Tr RecepteursUsbLogitech}"
+                                            Description="{local:Tr DonglesUnifyingBoltLightspeedEt}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding LogitechReceivers}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE7FC;" Header="{local:Tr ManettesSansFil}"
+                                            Description="{local:Tr AvecLAdaptateurSansFil}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding XboxControllers}" />
+                        </local:SettingsCard>
+                        <ItemsControl ItemsSource="{Binding DongleDevices}" ItemTemplate="{StaticResource DeviceRow}" Margin="24,0,0,0" />
+                        <Border Style="{StaticResource CardBorder}" Margin="0,8,0,0" Background="Transparent">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE946;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Top" Margin="2,1,16,0" />
+                                <TextBlock Style="{StaticResource Secondary}" MaxWidth="620" FontSize="13"
+                                           Text="{local:Tr LesDonglesDAutresMarques}" />
+                            </StackPanel>
+                        </Border>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ═══ Lecture en cours ═══ -->
+                    <StackPanel x:Name="NowPlayingPage" Visibility="Collapsed">
+                        <DockPanel Margin="0,0,0,20">
+                            <Button DockPanel.Dock="Right" Padding="14,6" Click="OnPreviewMedia" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                    <TextBlock Text="{local:Tr Apercu}" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Text="{local:Tr LectureEnCours}" Style="{StaticResource PageTitle}" Margin="0" />
+                        </DockPanel>
+                        <local:SettingsCard Icon="&#xE8D6;" Header="{local:Tr ModuleLectureEnCours}"
+                                            Description="{local:Tr SpotifyNavigateursLecteurMultimediaVlc}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleNowPlaying}" />
+                        </local:SettingsCard>
+                        <Border Style="{StaticResource ModuleOffNotice}" Tag="{Binding ModuleNowPlaying}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <TextBlock Text="{local:Tr ModuleDesactive}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Style="{StaticResource ModuleOptions}" IsEnabled="{Binding ModuleNowPlaying}">
+
+                        <TextBlock Text="{local:Tr Popup}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xEC4F;" Header="{local:Tr MusiqueUniquement}"
+                                            Description="{local:Tr IgnoreFilmsSeriesEtVideos}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaMusicOnly}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE8D6;" Header="{local:Tr AChaqueNouveauTitre}"
+                                            Description="{local:Tr UnPopupAChaqueChangement}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaNotifyTrackChange}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE768;" Header="{local:Tr AussiALaRepriseDe}"
+                                            Description="{local:Tr ApresUnePause}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaNotifyOnResume}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE769;" Header="{local:Tr AussiALaMiseEn}"
+                                            Description="{local:Tr QuandLaLectureSArrete}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaNotifyOnPause}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE7C4;" Header="{local:Tr PasDePopupSiL}"
+                                            Description="{local:Tr PasDePopupSiL2}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaHideWhenAppFocused}" />
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr MiniLecteur}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE718;" Header="{local:Tr AfficherLaLectureEnPermanence}"
+                                            Description="{local:Tr UneCarteDeLectureReste}">
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox SelectedIndex="{Binding MediaPinnedPositionIndex}" Width="170" VerticalAlignment="Center" Margin="0,0,16,0" IsEnabled="{Binding MediaPinned}">
+                                    <ComboBoxItem Content="{local:Tr EnHautAGauche}" />
+                                    <ComboBoxItem Content="{local:Tr EnHautAuCentre}" />
+                                    <ComboBoxItem Content="{local:Tr EnHautADroite}" />
+                                    <ComboBoxItem Content="{local:Tr EnBasAGauche}" />
+                                    <ComboBoxItem Content="{local:Tr EnBasAuCentre}" />
+                                    <ComboBoxItem Content="{local:Tr EnBasADroite}" />
+                                </ComboBox>
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaPinned}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE7F4;" Header="{local:Tr EcranDuMiniLecteur}">
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox ItemsSource="{Binding PinnedMonitorChoices}" SelectedIndex="{Binding PinnedMonitorChoiceIndex}" Width="300"
+                                          VerticalAlignment="Center" IsEnabled="{Binding MediaPinned}" />
+                                <Button Content="{local:Tr Identifier}" Padding="12,4" Margin="8,0,0,0" Click="OnIdentifyScreens" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE765;" Header="{local:Tr RaccourciClavierDuMiniLecteur}"
+                                            Description="{local:Tr MasqueOuAfficheLeMini}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Tag="Pinned" Width="170" IsReadOnly="True" Text="{Binding MediaPinnedHotkeyText, Mode=OneWay}"
+                                         TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,16,0" Cursor="Hand"
+                                         PreviewKeyDown="OnHotkeyKeyDown" IsEnabled="{Binding MediaPinnedHotkeyEnabled}" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaPinnedHotkeyEnabled}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE916;" Header="{local:Tr ProgressionDuTitre}"
+                                            Description="{local:Tr BarreDeProgressionEtDuree}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaShowProgress}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE7C9;" Header="{local:Tr ProgressionCliquable}"
+                                            Description="{local:Tr UnClicSurLaBarre}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaSeekable}" IsEnabled="{Binding MediaShowProgress}" />
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr Applications}" Style="{StaticResource SectionHeader}" />
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="2,0,0,8"
+                                   Text="{local:Tr ParDefautSelonMusiqueUniquement}" />
+                        <ItemsControl ItemsSource="{Binding MediaApps}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource RowBorder}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="&#xE8D6;" FontFamily="{StaticResource IconFont}" FontSize="18" VerticalAlignment="Center" Margin="2,0,16,0" />
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Details}" Style="{StaticResource Secondary}" TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                            <ComboBox Grid.Column="2" SelectedIndex="{Binding Mode}" Width="170" VerticalAlignment="Center" Margin="12,0,0,0">
+                                                <ComboBoxItem Content="{local:Tr ParDefaut}" ToolTip="{local:Tr SuitLOptionMusiqueUniquement}" />
+                                                <ComboBoxItem Content="{local:Tr ToutAfficher}" ToolTip="{local:Tr RadiosWebVideosMemeHors}" />
+                                                <ComboBoxItem Content="{local:Tr Masquer}" ToolTip="{local:Tr NeJamaisAfficherLesMedias}" />
+                                            </ComboBox>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock x:Name="EmptyMediaApps" Style="{StaticResource Secondary}" FontSize="13" Margin="2,4,0,0"
+                                   Text="{local:Tr LesApplicationsApparaissentIciDes}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ═══ Périphériques USB ═══ -->
+                    <StackPanel x:Name="UsbPage" Visibility="Collapsed">
+                        <DockPanel Margin="0,0,0,20">
+                            <Button DockPanel.Dock="Right" Padding="14,6" Click="OnPreviewUsb" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                    <TextBlock Text="{local:Tr Apercu}" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Text="{local:Tr PeripheriquesUsb}" Style="{StaticResource PageTitle}" Margin="0" />
+                        </DockPanel>
+                        <local:SettingsCard Icon="&#xE88E;" Header="{local:Tr ModulePeripheriquesUsb}"
+                                            Description="{local:Tr ClesDisquesClaviersSourisWebcams}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleUsb}" />
+                        </local:SettingsCard>
+                        <Border Style="{StaticResource ModuleOffNotice}" Tag="{Binding ModuleUsb}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <TextBlock Text="{local:Tr ModuleDesactive}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Style="{StaticResource ModuleOptions}" IsEnabled="{Binding ModuleUsb}">
+
+                        <TextBlock Text="{local:Tr Popup}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE8FB;" Header="{local:Tr BranchementDUnPeripherique}"
+                                            Description="{local:Tr AvecLEspaceLibrePour}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding UsbNotifyConnect}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE8D8;" Header="{local:Tr DebranchementDUnPeripherique}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding UsbNotifyDisconnect}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xEDA2;" Header="{local:Tr UniquementLesSupportsDeStockage}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding UsbStorageOnly}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE7E8;" Header="{local:Tr IgnorerLesRetraitsEnToute}"
+                                            Description="{local:Tr WindowsAfficheDejaSaPropre}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding UsbIgnoreSafeRemoval}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE740;" Header="{local:Tr AfficherAussiParDessusLe}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding UsbShowInFullscreen}" />
+                        </local:SettingsCard>
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="2,12,0,0"
+                                   Text="{local:Tr AuReveilDuPcLes}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ═══ Alimentation ═══ -->
+                    <StackPanel x:Name="PowerPage" Visibility="Collapsed">
+                        <DockPanel Margin="0,0,0,20">
+                            <Button DockPanel.Dock="Right" Padding="14,6" Click="OnPreviewPower" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                    <TextBlock Text="{local:Tr Apercu}" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Text="{local:Tr Alimentation}" Style="{StaticResource PageTitle}" Margin="0" />
+                        </DockPanel>
+                        <local:SettingsCard Icon="&#xEA93;" Header="{local:Tr ModuleAlimentation}"
+                                            Description="{local:Tr NomDuPcEtCharge2}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModulePower}" />
+                        </local:SettingsCard>
+                        <Border Style="{StaticResource ModuleOffNotice}" Tag="{Binding ModulePower}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <TextBlock Text="{local:Tr ModuleDesactive}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Style="{StaticResource ModuleOptions}" IsEnabled="{Binding ModulePower}">
+
+                        <TextBlock Text="{local:Tr Popup}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE83E;" Header="{local:Tr BranchementSurSecteur}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding PowerNotifyPlugged}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE859;" Header="{local:Tr Debranchement}"
+                                            Description="{local:Tr AvecLAutonomieRestanteSi}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding PowerNotifyUnplugged}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE740;" Header="{local:Tr AfficherAussiParDessusLe}"
+                                            Description="{local:Tr MemePendantUnJeuUne}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding PowerShowInFullscreen}" />
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr NiveauxDeBatterie}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE83F;" Header="{local:Tr NiveauDeChargeAtteint}"
+                                            Description="{local:Tr SurSecteurParExemple80}">
+                            <StackPanel Orientation="Horizontal">
+                                <Slider Width="150" Minimum="50" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True"
+                                        Value="{Binding PowerLevel}" VerticalAlignment="Center" IsEnabled="{Binding PowerNotifyLevel}" />
+                                <TextBlock Text="{Binding PowerLevel, StringFormat={}{0} %}" Width="44" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding PowerNotifyLevel}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE850;" Header="{local:Tr BatterieFaible}"
+                                            Description="{local:Tr SurBatterie}">
+                            <StackPanel Orientation="Horizontal">
+                                <Slider Width="150" Minimum="5" Maximum="50" TickFrequency="5" IsSnapToTickEnabled="True"
+                                        Value="{Binding PowerLowLevel}" VerticalAlignment="Center" IsEnabled="{Binding PowerNotifyLow}" />
+                                <TextBlock Text="{Binding PowerLowLevel, StringFormat={}{0} %}" Width="44" TextAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding PowerNotifyLow}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <TextBlock x:Name="NoBatteryText" Style="{StaticResource Secondary}" FontSize="13" Margin="2,12,0,0" Visibility="Collapsed"
+                                   Text="{local:Tr CePcNAPas}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ═══ Écrans ═══ -->
+                    <StackPanel x:Name="DisplaysPage" Visibility="Collapsed">
+                        <DockPanel Margin="0,0,0,20">
+                            <Button DockPanel.Dock="Right" Padding="14,6" Click="OnPreviewDisplays" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                    <TextBlock Text="{local:Tr Apercu}" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Text="{local:Tr Ecrans}" Style="{StaticResource PageTitle}" Margin="0" />
+                        </DockPanel>
+                        <local:SettingsCard Icon="&#xE7F4;" Header="{local:Tr ModuleEcrans}"
+                                            Description="{local:Tr HdmiDisplayportVgaUsbC}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleDisplays}" />
+                        </local:SettingsCard>
+                        <Border Style="{StaticResource ModuleOffNotice}" Tag="{Binding ModuleDisplays}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <TextBlock Text="{local:Tr ModuleDesactive}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Style="{StaticResource ModuleOptions}" IsEnabled="{Binding ModuleDisplays}">
+                        <TextBlock Text="{local:Tr Popup}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE8FB;" Header="{local:Tr BranchementDUnEcran}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding DisplayNotifyConnect}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE8D8;" Header="{local:Tr DebranchementDUnEcran}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding DisplayNotifyDisconnect}" />
+                        </local:SettingsCard>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ═══ À propos ═══ -->
+                    <StackPanel x:Name="AboutPage" Visibility="Collapsed">
+                        <TextBlock Text="{local:Tr APropos}" Style="{StaticResource PageTitle}" />
+                        <Border Style="{StaticResource CardBorder}" Padding="20">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <Image Source="{StaticResource HublotLogo}" Width="48" Height="48" />
+                                    <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="Hublot" FontSize="20" FontWeight="SemiBold" />
+                                        <TextBlock x:Name="VersionText" Style="{StaticResource Secondary}" />
+                                    </StackPanel>
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="0,16,0,0"
+                                           Text="{local:Tr UneSerieDePopupsFluent}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                    <Button Content="{local:Tr OuvrirLeDossierDesParametres}" Padding="14,6" Click="OnOpenFolder" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Version classique seulement (la version Store est mise à jour par le Store) -->
+                        <StackPanel x:Name="UpdatesSection">
+                            <TextBlock Text="{local:Tr Update.Section}" Style="{StaticResource SectionHeader}" />
+                            <local:SettingsCard Icon="&#xE896;" Header="{local:Tr Update.Auto}" Description="{local:Tr Update.AutoDescription}">
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding CheckUpdates}" />
+                            </local:SettingsCard>
+                            <Border Style="{StaticResource CardBorder}" Padding="20,14">
+                                <DockPanel>
+                                    <Button x:Name="UpdateButton" DockPanel.Dock="Right" Content="{local:Tr Update.Check}" Padding="14,6" Click="OnCheckUpdate" />
+                                    <TextBlock x:Name="UpdateStatus" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0" />
+                                </DockPanel>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>

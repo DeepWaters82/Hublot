@@ -1,0 +1,38 @@
+# Publie une version : pousser une étiquette « v3.1.0 » (identique à <Version> des .csproj).
+# GitHub compile Hublot-Setup.exe sur Windows et le joint à la version (Releases) ;
+# Hublot installé la détecte ensuite tout seul (recherche quotidienne des mises à jour).
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Check version
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'.TrimStart('v')
+          $version = ([xml](Get-Content src/Hublot/Hublot.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if ($tag -ne $version) { throw "Tag v$tag does not match <Version>$version</Version> in Hublot.csproj" }
+
+      - name: Build installer
+        shell: pwsh
+        run: ./build.ps1 -Updates ''
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Hublot-Setup.exe
+          generate_release_notes: true

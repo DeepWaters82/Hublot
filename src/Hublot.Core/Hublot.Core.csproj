@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>HublotCore</RootNamespace>
+    <AssemblyName>HublotCore</AssemblyName>
+    <!-- « Core » ne figure que dans le nom du processus (HublotCore.exe), jamais dans l'interface. -->
+    <Product>Hublot</Product>
+    <Company>Hublot</Company>
+    <AssemblyTitle>Hublot (paramètres et installation)</AssemblyTitle>
+    <Version>3.1.0</Version>
+    <ApplicationIcon>..\Hublot\app.ico</ApplicationIcon>
+    <ApplicationManifest>..\Hublot\app.manifest</ApplicationManifest>
+    <SatelliteResourceLanguages>fr</SatelliteResourceLanguages>
+    <!-- WPF0001 : ThemeMode (thème Fluent de WPF) est encore marqué expérimental. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <!-- Installateur : le service publié (Hublot.exe) est embarqué ; voir build.ps1. -->
+  <ItemGroup Condition="'$(ServicePayload)' != ''">
+    <EmbeddedResource Include="$(ServicePayload)" LogicalName="Hublot.exe" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Fichiers partagés avec le service. -->
+    <Compile Include="..\Hublot\Common\Settings.cs" Link="Shared\Settings.cs" />
+    <Compile Include="..\Hublot\Common\DeviceStore.cs" Link="Shared\DeviceStore.cs" />
+    <Compile Include="..\Hublot\Common\MediaStore.cs" Link="Shared\MediaStore.cs" />
+    <Compile Include="..\Hublot\Common\Displays.cs" Link="Shared\Displays.cs" />
+    <Compile Include="..\Hublot\Common\Strings.cs" Link="Shared\Strings.cs" />
+    <Compile Include="..\Hublot\Common\AppPackage.cs" Link="Shared\AppPackage.cs" />
+  </ItemGroup>
+
+</Project>

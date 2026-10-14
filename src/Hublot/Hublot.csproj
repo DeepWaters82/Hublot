@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- Le TFM Windows apporte les projections WinRT (DeviceWatcher, GATT, sessions média). Win32 pur, sans WinForms/WPF. -->
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>Hublot</RootNamespace>
+    <AssemblyName>Hublot</AssemblyName>
+    <Product>Hublot</Product>
+    <Version>3.1.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <SatelliteResourceLanguages>fr</SatelliteResourceLanguages>
+    <!-- Code compatible trimming / Native AOT (LibraryImport, pas de réflexion). -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <!-- IL2104 : avertissements internes aux projections WinRT de Microsoft, sans impact ici. -->
+    <NoWarn>$(NoWarn);IL2104</NoWarn>
+
+    <!-- Sobriété mémoire / CPU -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>false</TieredPGO>
+    <EventSourceSupport>false</EventSourceSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Le GC compacte plus tôt plutôt que de laisser grossir le tas. -->
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="7" />
+  </ItemGroup>
+
+</Project>
