@@ -616,6 +616,10 @@
                                             Description="{local:Tr UnClicSurLaBarre}">
                             <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaSeekable}" IsEnabled="{Binding MediaShowProgress}" />
                         </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE790;" Header="{local:Tr CouleursDeLaPochette}"
+                                            Description="{local:Tr TeinteLaCarteSelonLaPochette}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaCoverColors}" />
+                        </local:SettingsCard>
 
                         <TextBlock Text="{local:Tr Applications}" Style="{StaticResource SectionHeader}" />
                         <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="2,0,0,8"

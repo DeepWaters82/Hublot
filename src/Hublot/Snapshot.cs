@@ -91,6 +91,46 @@ internal static class Snapshot
             }
             film.SavePng(Path.Combine(directory, "transition-titre.png"));
         }
+
+        // Couleurs de la pochette : une pochette par teinte (et une en noir et blanc), en clair et en sombre.
+        {
+            uint[] tones = [0xFFD8402F, 0xFFE8B030, 0xFF3FA65A, 0xFF2F6FD8, 0xFF9C3FD0, 0xFF808080];
+            int m = PopupRenderer.ShadowMargin(scale);
+            var sample = new MediaCard(media, (_, _) => { });
+            int w = (int)MathF.Round(sample.Width * scale), h = (int)MathF.Round(sample.Height * scale);
+            using var sheet = new Canvas(2 * (w + m) + m, tones.Length * (h + m) + m);
+            sheet.Fill(0xFF808890);
+            for (int col = 0; col < 2; col++)
+            {
+                var theme = themes[col].Theme;
+                for (int row = 0; row < tones.Length; row++)
+                {
+                    var card = new RectF(m + col * (w + m), m + row * (h + m), w, h);
+                    sheet.FillRoundRect(card, PopupRenderer.CornerRadius * scale, theme.Background);
+                    var tinted = new MediaCard(media with { Cover = SampleCover(tones[row]) }, (_, _) => { });
+                    tinted.Draw(new CardContext(sheet, card, theme, scale, Stopwatch.GetTimestamp(), new AnimClock(false, 1), -1, settings));
+                }
+            }
+            sheet.SavePng(Path.Combine(directory, "couleurs-pochette.png"));
+        }
+    }
+
+    /// <summary>Pochette de démonstration d'une teinte : dégradé vers le noir, avec un coin clair.</summary>
+    private static Cover SampleCover(uint tone)
+    {
+        const int size = 96;
+        var pixels = new byte[size * size * 4];
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            int i = (y * size + x) * 4;
+            float shade = 0.35f + 0.65f * (1 - y / (float)size), light = x + y < 30 ? 1 : 0;
+            pixels[i] = (byte)Math.Min(255, (tone & 0xFF) * shade + 200 * light);
+            pixels[i + 1] = (byte)Math.Min(255, (tone >> 8 & 0xFF) * shade + 200 * light);
+            pixels[i + 2] = (byte)Math.Min(255, (tone >> 16 & 0xFF) * shade + 200 * light);
+            pixels[i + 3] = 255;
+        }
+        return new Cover(pixels, size);
     }
 
     /// <summary>Pochette de démonstration : dégradé diagonal.</summary>

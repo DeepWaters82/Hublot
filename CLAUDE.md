@@ -135,6 +135,12 @@ src/Hublot/
   millièmes (le survol change de partie à chaque déplacement → redessin, pastille + temps visé).
   `TryChangePlaybackPositionAsync((Start + position).Ticks)` ; la carte saute tout de suite à la position
   visée (certaines applications ne republient pas leur position). Vérifié avec une session `MediaPlayer`.
+- **Couleurs de la pochette** (`MediaCoverColors`, activé par défaut, 3.2.0) : `CoverColors.Seed` = teinte
+  dominante (tranches de 10°, pixels pondérés par saturation² × valeur ; < 5 % de pixels colorés → 0, thème
+  normal), calculée paresseusement (`Cover.Seed`). `CoverColors.For(seed, dark)` → teinte de fond HSL
+  (L 0,24 / 0,86, alpha 0,6, posée sur le matériau en retrait du contour) + accentuation (L 0,74 / 0,38) qui
+  remplace `Theme.Accent` pour la carte (bouton, progression). Fondu avec la pochette (`CoverMs`).
+  Planche : `--snapshot` → `couleurs-pochette.png`. Changement d'option → `Restyle` du mini-lecteur.
 - **Raccourci du mini-lecteur** : second `RegisterHotKey` (`TrayIcon.PinnedHotkey`) →
   `NowPlayingModule.TogglePinned` ; `_pinnedOverride` prime sur l'option jusqu'au prochain changement de réglages.
 - **Bouton lecture / pause** : morphing (`MediaCard.DrawPlayPause(shape 0→1)`, 260 ms) — chaque moitié du

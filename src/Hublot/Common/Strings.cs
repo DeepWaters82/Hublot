@@ -333,6 +333,8 @@ public static partial class L
         ["ProgressionDuTitre"] = ("Progression du titre", "Track progress"),
         ["BarreDeProgressionEtDuree"] = ("Barre de progression et durée sous les boutons.", "Progress bar and duration below the buttons."),
         ["ProgressionCliquable"] = ("Progression cliquable", "Clickable progress"),
+        ["CouleursDeLaPochette"] = ("Couleurs de la pochette", "Album art colors"),
+        ["TeinteLaCarteSelonLaPochette"] = ("Teinte la carte selon la pochette.", "Tints the card to match the album art."),
         ["UnClicSurLaBarre"] = ("Un clic sur la barre avance ou recule dans le titre.", "Clicking the bar skips forward or back in the track."),
         ["Applications"] = ("Applications", "Apps"),
         ["ParDefautSelonMusiqueUniquement"] = ("Par défaut : selon « Musique uniquement ». Tout afficher : tout ce que joue l'application. Masquer : rien. Le choix vaut pour tous les onglets d'un navigateur.", "Default: follows “Music only”. Show everything: all the app plays. Hide: nothing. The choice applies to all tabs of a browser."),

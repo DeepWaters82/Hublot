@@ -413,7 +413,8 @@ internal sealed class App : IHost
 
     /// <summary>Réglages de couleur seulement : la carte est repeinte sur place.</summary>
     private static bool ColorsChanged(Settings a, Settings b) =>
-        a.Theme != b.Theme || a.UseAccentColor != b.UseAccentColor || a.TintOpacity != b.TintOpacity || a.SolidOpacity != b.SolidOpacity;
+        a.Theme != b.Theme || a.UseAccentColor != b.UseAccentColor || a.TintOpacity != b.TintOpacity || a.SolidOpacity != b.SolidOpacity
+        || a.MediaCoverColors != b.MediaCoverColors;
 
     private void ApplyHotkey()
     {

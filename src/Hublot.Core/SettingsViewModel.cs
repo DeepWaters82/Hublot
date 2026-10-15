@@ -233,6 +233,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public int MediaPinnedPositionIndex { get => (int)_s.MediaPinnedPosition; set => Set(() => _s.MediaPinnedPosition = (PopupPosition)value, preview: false); }
     public bool MediaSeekable { get => _s.MediaSeekable; set => Set(() => _s.MediaSeekable = value, preview: false); }
     public bool MediaShowProgress { get => _s.MediaShowProgress; set => Set(() => _s.MediaShowProgress = value, preview: false); }
+    public bool MediaCoverColors { get => _s.MediaCoverColors; set => Set(() => _s.MediaCoverColors = value, preview: false); }
     public bool MediaMusicOnly { get => _s.MediaMusicOnly; set => Set(() => _s.MediaMusicOnly = value, preview: false); }
 
     public ObservableCollection<MediaAppItem> MediaApps { get; } = [];

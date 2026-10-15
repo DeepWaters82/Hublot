@@ -152,6 +152,8 @@ public sealed class Settings
     public bool MediaShowProgress { get; set; } = true;
     /// <summary>Clic sur la barre de progression : avance / recule dans le titre.</summary>
     public bool MediaSeekable { get; set; } = true;
+    /// <summary>Couleurs de la pochette : teinte de fond et accentuation de la carte (façon Material You).</summary>
+    public bool MediaCoverColors { get; set; } = true;
     /// <summary>Raccourci qui masque / réaffiche le mini-lecteur (0x50 = P, comme « player »).</summary>
     public bool MediaPinnedHotkeyEnabled { get; set; } = true;
     public int MediaPinnedHotkeyModifiers { get; set; } = ModControl | ModAlt;
@@ -318,6 +320,7 @@ public sealed class Settings
         Add(nameof(MediaPinnedMonitorDevice), MediaPinnedMonitorDevice);
         Add(nameof(MediaShowProgress), MediaShowProgress);
         Add(nameof(MediaSeekable), MediaSeekable);
+        Add(nameof(MediaCoverColors), MediaCoverColors);
         Add(nameof(MediaPinnedHotkeyEnabled), MediaPinnedHotkeyEnabled);
         Add(nameof(MediaPinnedHotkeyModifiers), MediaPinnedHotkeyModifiers);
         Add(nameof(MediaPinnedHotkeyKey), MediaPinnedHotkeyKey);
@@ -401,6 +404,7 @@ public sealed class Settings
             case nameof(MediaPinnedMonitorDevice): MediaPinnedMonitorDevice = value; break;
             case nameof(MediaShowProgress): MediaShowProgress = ParseBool(value, MediaShowProgress); break;
             case nameof(MediaSeekable): MediaSeekable = ParseBool(value, MediaSeekable); break;
+            case nameof(MediaCoverColors): MediaCoverColors = ParseBool(value, MediaCoverColors); break;
             case nameof(MediaPinnedHotkeyEnabled): MediaPinnedHotkeyEnabled = ParseBool(value, MediaPinnedHotkeyEnabled); break;
             case nameof(MediaPinnedHotkeyModifiers): MediaPinnedHotkeyModifiers = ParseInt(value, MediaPinnedHotkeyModifiers, 0, 15); break;
             case nameof(MediaPinnedHotkeyKey): MediaPinnedHotkeyKey = ParseInt(value, MediaPinnedHotkeyKey, 0, 255); break;

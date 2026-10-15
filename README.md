@@ -16,7 +16,7 @@ on or off.
 | Module | What it shows |
 |---|---|
 | **Wireless devices** | Name, state and battery of Bluetooth devices, Logitech receivers (Unifying, Bolt, Lightspeed) and Xbox controllers when they connect or disconnect; low battery, charging and charge-level alerts. |
-| **Now playing** | Cover, title and artist on every new track, with previous / play-pause / next, a clickable progress bar and an optional always-on mini player. Music only by default (videos ignored). |
+| **Now playing** | Cover, title and artist on every new track, with previous / play-pause / next, a clickable progress bar, colors taken from the album art and an optional always-on mini player. Music only by default (videos ignored). |
 | **USB devices** | Name and state of USB devices; free and used space for drives. |
 | **Displays** | Real name, connection (HDMI, DisplayPort, VGA, USB-C…) and resolution of a display when it is plugged in or unplugged. |
 | **Power** | PC name and battery level when a laptop is plugged in or unplugged, charge-level and low-battery alerts. |

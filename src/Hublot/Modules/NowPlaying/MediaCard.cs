@@ -189,10 +189,31 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
         float k = ctx.Scale;
         _clock = ctx.Clock;
         RectF Abs(RectF b) => new(card.X + b.X * k, card.Y + b.Y * k, b.Width * k, b.Height * k);
+        double coverFade = _coverFading ? Progress(_coverStart, CoverMs, ctx.Now, ctx.Clock) : 1;
+
+        // Couleurs de la pochette (option) : teinte de fond sur le matériau, et accentuation (bouton, progression)
+        // qui remplace celle de Windows. Elles suivent le fondu de la pochette.
+        if (ctx.Settings.MediaCoverColors)
+        {
+            var (tint, accent) = Colors(p.Cover, t);
+            if (coverFade < 1)
+            {
+                var (tintFrom, accentFrom) = Colors(_coverFrom, t);
+                float e = (float)Easing.Decelerate(coverFade);
+                (tint, accent) = (CoverColors.Lerp(tintFrom, tint, e), CoverColors.Lerp(accentFrom, accent, e));
+            }
+            if (tint >> 24 != 0)
+            {
+                // En retrait du contour (matériau « Uni ») ; le matériau système arrondit déjà la fenêtre.
+                float inset = Math.Max(1, MathF.Round(k));
+                c.FillRoundRect(new RectF(card.X + inset, card.Y + inset, card.Width - 2 * inset, card.Height - 2 * inset),
+                    PopupRenderer.CornerRadius * k - inset, tint);
+            }
+            t = t with { Accent = accent };
+        }
 
         // Pochette : fondu enchaîné de l'ancienne vers la nouvelle.
         var cover = Abs(new RectF(16, 16, CoverSize, CoverSize));
-        double coverFade = _coverFading ? Progress(_coverStart, CoverMs, ctx.Now, ctx.Clock) : 1;
         if (coverFade < 1) DrawCover(c, cover, _coverFrom, t, k, ctx.S(30));
         DrawCover(c, cover, p.Cover, t, k, ctx.S(30), (float)Easing.Decelerate(coverFade));
 
@@ -254,17 +275,21 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
             if (pressScale < 0.999f) c.ResetTransform();
         }
 
-        DrawProgress(ctx, p);
+        DrawProgress(ctx, t, p);
     }
+
+    /// <summary>Teinte de fond et accentuation tirées d'une pochette ; sans pochette colorée, le thème tel quel.</summary>
+    private static (uint Tint, uint Accent) Colors(Cover? cover, Theme t)
+        => cover is { Seed: not 0 and var seed } ? CoverColors.For(seed, t.Dark) : (0, t.Accent);
 
     /// <summary>
     /// Progression : redessinée chaque seconde par le module tant que la lecture continue. Survolée (si
     /// cliquable) : barre épaissie, pastille et temps à la position visée. Rangée réservée sans durée connue
     /// (direct, titre en cours de changement) : piste seule.
     /// </summary>
-    private void DrawProgress(in CardContext ctx, MediaState p)
+    private void DrawProgress(in CardContext ctx, Theme t, MediaState p)
     {
-        var (c, t, card) = (ctx.Canvas, ctx.Theme, ctx.Card);
+        var (c, card) = (ctx.Canvas, ctx.Card);
         float rowY = card.Y + ctx.S(RowTop), rowH = ctx.S(RowHeight);
         if (p.Timeline is not { } timeline)
         {

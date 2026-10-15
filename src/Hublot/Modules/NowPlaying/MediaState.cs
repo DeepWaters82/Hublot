@@ -1,7 +1,13 @@
 namespace Hublot.Modules.NowPlaying;
 
 /// <summary>Pochette décodée : pixels BGRA prémultipliés, carrée.</summary>
-internal sealed record Cover(byte[] Pixels, int Size);
+internal sealed record Cover(byte[] Pixels, int Size)
+{
+    private uint? _seed;
+
+    /// <summary>Couleur dominante (<see cref="CoverColors.Seed"/>), calculée au premier besoin.</summary>
+    public uint Seed => _seed ??= CoverColors.Seed(Pixels);
+}
 
 internal enum MediaCommand { Previous, TogglePlayPause, Next }
 

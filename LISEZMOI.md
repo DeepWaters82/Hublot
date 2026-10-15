@@ -57,6 +57,9 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
   à la demande quand l'option permanente est désactivée.
 - **Progression cliquable** (avec la progression) : un clic sur la barre avance ou recule dans le titre,
   si l'application l'accepte ; au survol, la barre s'épaissit et indique le temps visé.
+- **Couleurs de la pochette** (activé par défaut) : la carte prend une teinte tirée de la pochette, et le
+  bouton lecture / pause et la progression sa couleur dominante, à la manière de Material You. Une pochette
+  en noir et blanc garde les couleurs de Windows.
 - Les notifications de Windows (Teams, Messages, Outlook…) s'affichent toujours **au-dessus** des
   popups de Hublot : Windows les place dans une couche réservée au système. Elles apparaissent en bas à
   droite, comme le mini-lecteur par défaut, et le recouvrent le temps de leur affichage. Pour éviter

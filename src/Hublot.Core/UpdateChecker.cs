@@ -15,7 +15,7 @@ namespace HublotCore;
 internal static class UpdateChecker
 {
     /// <summary>Dépôt GitHub « utilisateur/dépôt ». « OWNER » = pas encore configuré : aucune vérification.</summary>
-    public const string Repository = "OWNER/Hublot";
+    public const string Repository = "DeepWaters82/Hublot";
 
     private const string AssetName = "Hublot-Setup.exe";
 
