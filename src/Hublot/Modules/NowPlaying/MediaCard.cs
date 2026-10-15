@@ -195,12 +195,12 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
         // qui remplace celle de Windows. Elles suivent le fondu de la pochette.
         if (ctx.Settings.MediaCoverColors)
         {
-            var (tint, accent) = Colors(p.Cover, t);
+            var (tint, accent, track) = Colors(p.Cover, t);
             if (coverFade < 1)
             {
-                var (tintFrom, accentFrom) = Colors(_coverFrom, t);
+                var (tintFrom, accentFrom, trackFrom) = Colors(_coverFrom, t);
                 float e = (float)Easing.Decelerate(coverFade);
-                (tint, accent) = (CoverColors.Lerp(tintFrom, tint, e), CoverColors.Lerp(accentFrom, accent, e));
+                (tint, accent, track) = (CoverColors.Lerp(tintFrom, tint, e), CoverColors.Lerp(accentFrom, accent, e), CoverColors.Lerp(trackFrom, track, e));
             }
             if (tint >> 24 != 0)
             {
@@ -209,7 +209,7 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
                 c.FillRoundRect(new RectF(card.X + inset, card.Y + inset, card.Width - 2 * inset, card.Height - 2 * inset),
                     PopupRenderer.CornerRadius * k - inset, tint);
             }
-            t = t with { Accent = accent };
+            t = t with { Accent = accent, Track = track };
         }
 
         // Pochette : fondu enchaîné de l'ancienne vers la nouvelle.
@@ -278,9 +278,16 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
         DrawProgress(ctx, t, p);
     }
 
-    /// <summary>Teinte de fond et accentuation tirées d'une pochette ; sans pochette colorée, le thème tel quel.</summary>
-    private static (uint Tint, uint Accent) Colors(Cover? cover, Theme t)
-        => cover is { Seed: not 0 and var seed } ? CoverColors.For(seed, t.Dark) : (0, t.Accent);
+    /// <summary>
+    /// Teinte de fond, accentuation et piste de la progression (l'accentuation estompée) tirées d'une pochette ;
+    /// sans pochette colorée, le thème tel quel.
+    /// </summary>
+    private static (uint Tint, uint Accent, uint Track) Colors(Cover? cover, Theme t)
+    {
+        if (cover is not { Seed: not 0 and var seed }) return (0, t.Accent, t.Track);
+        var (tint, accent) = CoverColors.For(seed, t.Dark);
+        return (tint, accent, PopupRenderer.WithAlpha(accent, 0.32f));
+    }
 
     /// <summary>
     /// Progression : redessinée chaque seconde par le module tant que la lecture continue. Survolée (si

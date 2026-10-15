@@ -139,7 +139,7 @@ src/Hublot/
   dominante (tranches de 10°, pixels pondérés par saturation² × valeur ; < 5 % de pixels colorés → 0, thème
   normal), calculée paresseusement (`Cover.Seed`). `CoverColors.For(seed, dark)` → teinte de fond HSL
   (L 0,24 / 0,86, alpha 0,6, posée sur le matériau en retrait du contour) + accentuation (L 0,74 / 0,38) qui
-  remplace `Theme.Accent` pour la carte (bouton, progression). Fondu avec la pochette (`CoverMs`).
+  remplace `Theme.Accent` pour la carte (bouton, progression) ; piste de la progression = accentuation à 32 % (3.2.1). Fondu avec la pochette (`CoverMs`).
   Planche : `--snapshot` → `couleurs-pochette.png`. Changement d'option → `Restyle` du mini-lecteur.
 - **Raccourci du mini-lecteur** : second `RegisterHotKey` (`TrayIcon.PinnedHotkey`) →
   `NowPlayingModule.TogglePinned` ; `_pinnedOverride` prime sur l'option jusqu'au prochain changement de réglages.
