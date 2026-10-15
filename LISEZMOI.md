@@ -40,13 +40,14 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
 - Un popup par **nouveau titre en lecture**, une fois les informations stables (pas de doublon, pas de
   popup pour les aperçus au survol des miniatures YouTube). Pas de popup pour une pause, ni (option)
   quand l'application qui joue est au premier plan.
-- **Musique uniquement** (activé par défaut) : films, séries et vidéos sont ignorés. Windows ne donne
-  pas l'adresse du site joué dans un navigateur ; Hublot écarte donc ce que l'application déclare comme
-  vidéo, les applications vidéo connues (Netflix, Prime Video, Disney+, Twitch, YouTube — pas YouTube
-  Music —…) et les onglets de navigateur **sans album** : YouTube Music, Spotify, Deezer ou Apple Music
-  indiquent l'album, YouTube ou Netflix non. Une radio web sans album est donc aussi écartée.
-- Chaque application a un mode dans les paramètres : *Par défaut* (suit « Musique uniquement »),
-  *Tout afficher* (pour une radio web dans Chrome, par exemple — mais aussi ses vidéos) ou *Masquer*.
+- **Plateformes musicales uniquement** (activé par défaut) : seules les grandes plateformes déclenchent
+  la popup et le mini-lecteur — Spotify, Deezer, Apple Music, iTunes, Amazon Music, YouTube Music, TIDAL,
+  Qobuz, SoundCloud, Pandora, Napster — en application ou dans le navigateur. Windows ne donne pas
+  l'adresse du site joué dans un navigateur ; Hublot y retient les onglets **avec album** : YouTube Music,
+  Spotify, Deezer ou Apple Music indiquent l'album, YouTube ou Netflix non. Les vidéos, les autres
+  applications (WhatsApp, Teams, VLC, Lecteur multimédia…) et les radios web sont donc écartées.
+- Chaque application a un mode dans les paramètres : *Par défaut* (suit « Plateformes musicales
+  uniquement »), *Tout afficher* (radio web dans Chrome, VLC… — mais aussi ses vidéos) ou *Masquer*.
   Windows identifie le navigateur, pas l'onglet : le choix vaut pour tous les sites de ce navigateur.
   Microsoft Teams (appels, réunions) est masqué par défaut.
 - Options : popup aussi à la reprise, aussi à la mise en pause ; **progression du titre** (temps écoulé,
@@ -71,7 +72,7 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
 
 - Le nom affiché est celui que le périphérique annonce (« HD Pro Webcam C920 »), ou pour un stockage
 - « Retirer le périphérique en toute sécurité » : pas de popup (option, activée), Windows affiche déjà
-  la sienne. Les popups USB et Alimentation s'affichent aussi par-dessus le plein écran (option, activée).
+  la sienne. Par défaut, aucune popup en plein écran ; USB et Alimentation peuvent passer par-dessus (option).
   celui du volume, comme dans l'Explorateur : « KINGSTON (E:) ».
 - L'espace s'affiche dès que Windows a monté le volume (une à deux secondes après le branchement) ;
   la jauge passe à l'orange au-delà de 90 % d'occupation, au rouge au-delà de 97 %.

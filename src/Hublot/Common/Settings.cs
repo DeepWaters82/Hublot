@@ -118,8 +118,8 @@ public sealed class Settings
     /// <summary>Popup quand la charge descend à <see cref="PowerLowLevel"/> sur batterie.</summary>
     public bool PowerNotifyLow { get; set; }
     public int PowerLowLevel { get; set; } = 20;
-    /// <summary>Popups d'alimentation aussi par-dessus une application en plein écran.</summary>
-    public bool PowerShowInFullscreen { get; set; } = true;
+    /// <summary>Popups d'alimentation aussi par-dessus une application en plein écran (désactivé par défaut depuis 3.3.0).</summary>
+    public bool PowerShowInFullscreen { get; set; }
 
     // Module « Périphériques USB »
     public bool UsbNotifyConnect { get; set; } = true;
@@ -128,8 +128,8 @@ public sealed class Settings
     public bool UsbStorageOnly { get; set; }
     /// <summary>Pas de popup pour un « retrait en toute sécurité » (Windows affiche déjà le sien).</summary>
     public bool UsbIgnoreSafeRemoval { get; set; } = true;
-    /// <summary>Popups USB aussi par-dessus une application en plein écran.</summary>
-    public bool UsbShowInFullscreen { get; set; } = true;
+    /// <summary>Popups USB aussi par-dessus une application en plein écran (désactivé par défaut depuis 3.3.0).</summary>
+    public bool UsbShowInFullscreen { get; set; }
 
     // Module « Lecture en cours »
     /// <summary>Popup à chaque nouveau titre.</summary>
@@ -140,7 +140,10 @@ public sealed class Settings
     public bool MediaNotifyOnPause { get; set; } = true;
     /// <summary>Pas de popup quand l'application qui joue est au premier plan.</summary>
     public bool MediaHideWhenAppFocused { get; set; }
-    /// <summary>Musique uniquement : ni films, ni séries, ni vidéos (YouTube, Netflix, Prime Video…).</summary>
+    /// <summary>
+    /// Plateformes musicales uniquement : les grands services de musique (<see cref="Modules.NowPlaying.MediaApps"/>)
+    /// et les onglets de navigateur qui déclarent un album ; ni vidéos, ni autres applications.
+    /// </summary>
     public bool MediaMusicOnly { get; set; } = true;
     /// <summary>Carte de lecture affichée en permanence (mini-lecteur), à son propre emplacement.</summary>
     public bool MediaPinned { get; set; }

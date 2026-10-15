@@ -336,8 +336,8 @@ internal sealed class NowPlayingModule : Module
     }
 
     /// <summary>
-    /// Écarté par « Musique uniquement » : pas de la musique, et l'application n'est pas réglée sur
-    /// « Tout afficher » (radio web dans Chrome…).
+    /// Écarté par « Plateformes musicales uniquement » : pas une plateforme musicale (ou une vidéo), et
+    /// l'application n'est pas réglée sur « Tout afficher » (radio web dans Chrome, VLC…).
     /// </summary>
     private bool NotMusicFiltered(MediaState state) =>
         state.NotMusic is not null && Host.Settings.MediaMusicOnly && !Host.Settings.MediaAlwaysShownApps.Contains(state.AppId);

@@ -31,6 +31,16 @@ internal static class MediaApps
 
     private static readonly string[] BrowserNames = ["Firefox", "Google Chrome", "Microsoft Edge", "Brave", "Opera", "Vivaldi", "Chromium"];
 
+    /// <summary>
+    /// Plateformes musicales reconnues (nom affiché ou AUMID) : applications de bureau, du Store et applications
+    /// web installées. « Apple Music » est aussi le nom affiché de « AppleInc.AppleMusicWin_…!App ».
+    /// </summary>
+    private static readonly string[] MusicPlatforms =
+    [
+        "Spotify", "Deezer", "Apple Music", "iTunes", "Amazon Music", "AmazonMusic", "YouTube Music", "TIDAL", "Qobuz",
+        "SoundCloud", "Pandora", "Napster",
+    ];
+
     /// <summary>Services et lecteurs vidéo (nom affiché ou AUMID) : applications du Store et applications web installées.</summary>
     private static readonly string[] VideoServices =
     [
@@ -40,14 +50,16 @@ internal static class MediaApps
     ];
 
     /// <summary>
-    /// La session est-elle de la musique ? Renvoie la raison du refus, ou null. Windows ne donne ni l'adresse
-    /// de l'onglet ni le site : on s'appuie sur ce que l'application déclare et sur ce qu'on sait d'elle.
+    /// La session vient-elle d'une plateforme musicale ? Renvoie la raison du refus, ou null. Windows ne donne ni
+    /// l'adresse de l'onglet ni le site : on s'appuie sur ce que l'application déclare et sur ce qu'on sait d'elle.
     /// <list type="number">
     /// <item>type déclaré « vidéo » (lecteurs natifs : Films et TV, Lecteur multimédia, VLC…) ;</item>
     /// <item>application vidéo connue (Netflix, Prime Video, Disney+, YouTube — pas YouTube Music…) ;</item>
     /// <item>onglet de navigateur sans album : les sites musicaux (YouTube Music, Spotify, Deezer, Apple Music…)
     /// renseignent l'album, les sites vidéo (YouTube, Netflix, Twitch…) non. Chromium déclare tout comme
-    /// « musique », le type n'aide donc pas pour les navigateurs.</item>
+    /// « musique », le type n'aide donc pas pour les navigateurs ;</item>
+    /// <item>autre application : seulement une plateforme musicale connue (<see cref="MusicPlatforms"/>). Un
+    /// lecteur local (VLC, Lecteur multimédia…) se règle sur « Tout afficher » dans les paramètres.</item>
     /// </list>
     /// </summary>
     public static string? NotMusicReason(string appId, string appName, MediaPlaybackType? type, string album)
@@ -56,8 +68,8 @@ internal static class MediaApps
         bool youTubeVideo = HasWord(appName, "YouTube") && !HasWord(appName, "Music");
         if (youTubeVideo || VideoServices.Any(v => HasWord(appName, v) || HasWord(appId, v))) return "service vidéo";
         bool browser = Browsers.Contains(appId) || BrowserNames.Any(b => appName.Equals(b, StringComparison.OrdinalIgnoreCase));
-        if (browser && string.IsNullOrWhiteSpace(album)) return NoAlbum;
-        return null;
+        if (browser) return string.IsNullOrWhiteSpace(album) ? NoAlbum : null;
+        return MusicPlatforms.Any(m => HasWord(appName, m) || HasWord(appId, m)) ? null : "pas une plateforme musicale";
     }
 
     public const string NoAlbum = "onglet sans album";

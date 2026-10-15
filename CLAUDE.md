@@ -78,9 +78,11 @@ src/Hublot/
 - API : `GlobalSystemMediaTransportControlsSessionManager` (sessions déclarées à Windows) ;
   événements `SessionsChanged`, `MediaPropertiesChanged`, `PlaybackInfoChanged`. Une session par
   AppUserModelId ; l'exclusion se fait par AUMID (pas par onglet de navigateur).
-- **Musique uniquement** (`MediaMusicOnly`, `MediaApps.NotMusicReason`) : type déclaré Vidéo / Image,
-  applications vidéo connues (nom ou AUMID, mot entier : « Plex » ≠ « Perplexity »), et onglets de
-  navigateur sans `AlbumTitle`. Chromium déclare **tout** comme `Music` (vérifié) ; YouTube n'a pas
+- **Plateformes musicales uniquement** (`MediaMusicOnly`, `MediaApps.NotMusicReason`, liste depuis 3.3.0) :
+  écarte le type déclaré Vidéo / Image, les applications vidéo connues (nom ou AUMID, mot entier : « Plex »
+  ≠ « Perplexity »), les onglets de navigateur sans `AlbumTitle`, et toute autre application qui n'est pas
+  dans `MediaApps.MusicPlatforms` (Spotify, Deezer, Apple Music, iTunes, Amazon Music, YouTube Music,
+  TIDAL, Qobuz, SoundCloud, Pandora, Napster ; WhatsApp, Teams, VLC, Lecteur multimédia → « Tout afficher »). Chromium déclare **tout** comme `Music` (vérifié) ; YouTube n'a pas
   d'album, YouTube Music si. Un onglet sans album ne « consomme » pas le titre (l'album peut arriver
   après). S'applique aux popups et aux listes (survol, raccourci). Exception par application :
   `MediaAlwaysShownApps` (« Tout afficher » dans Hublot Core, ex. radio web dans Chrome).
@@ -170,7 +172,8 @@ src/Hublot/
   au premier plan (`ShellItems.WindowAppId`, PKEY_AppUserModel_ID — « Brave._crx_… » pour une
   application web, « Chrome.UserData.Profile1 » pour Chrome) ; sinon processus (pas pour `_crx_`).
 - Surfaces : `BringToTop` (HWND_TOPMOST) à chaque affichage — une fenêtre masquée garde sa place dans
-  l'ordre Z. `CardContent.ShowOverFullscreen` : USB et Alimentation passent outre la règle plein écran.
+  l'ordre Z. `CardContent.ShowOverFullscreen` : USB et Alimentation passent outre la règle plein écran
+  si leur option est active (désactivées par défaut depuis 3.3.0 : aucun popup en plein écran).
 
 ## Module « Alimentation »
 

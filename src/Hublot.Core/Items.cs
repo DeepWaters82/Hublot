@@ -91,7 +91,7 @@ internal static class Hotkeys
 }
 
 /// <summary>
-/// Application média déjà vue, avec son mode : 0 = par défaut (suit « Musique uniquement »),
+/// Application média déjà vue, avec son mode : 0 = par défaut (suit « Plateformes musicales uniquement »),
 /// 1 = tout afficher (radio web dans un navigateur…), 2 = masquer.
 /// </summary>
 public sealed class MediaAppItem(MediaApp app, int mode, Action<string, int> setMode) : INotifyPropertyChanged
