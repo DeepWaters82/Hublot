@@ -79,7 +79,7 @@ internal static unsafe partial class User32
     [LibraryImport("user32.dll")]
     public static partial uint GetWindowThreadProcessId(nint hwnd, uint* processId);
 
-    public const int SW_RESTORE = 9;
+    public const int SW_MINIMIZE = 6, SW_RESTORE = 9;
     public const uint GW_OWNER = 4;
     private const uint DWMWA_CLOAKED = 14;
 

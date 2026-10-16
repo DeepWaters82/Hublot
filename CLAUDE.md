@@ -150,6 +150,7 @@ src/Hublot/
   AUMID déclaré, sinon même processus ; jamais entre application web `_crx_` et navigateur) → restaurée si
   réduite + `SetForegroundWindow` (permis : Hublot vient de recevoir le clic). Sinon, si l'AUMID est dans
   `shell:AppsFolder` et que ce n'est pas un navigateur : `explorer.exe shell:AppsFolder\<AUMID>`.
+  Premier plan déjà à l'application (second clic ; la popup ne prend jamais le focus) → `SW_MINIMIZE`.
 - **Clic = masqué jusqu'au raccourci** (`MediaPinnedClickUntilHotkey`, désactivé, 3.4.0, exige le
   raccourci) : `App`, événement `Hidden` du mini-lecteur fermé par un clic (`_pinnedWanted` non nul ;
   `Pin(null)` l'a déjà vidé) → `NowPlayingModule.HideUntilHotkey` (`_pinnedOverride = false`). Changement d'option → `Restyle` du mini-lecteur.

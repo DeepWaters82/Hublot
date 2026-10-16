@@ -337,7 +337,7 @@ public static partial class L
         ["LeClicMasqueJusquAuRaccourci"] = ("Le clic masque jusqu'au raccourci", "Click hides until the shortcut"),
         ["SinonLeMiniLecteurRevient"] = ("Sinon, le mini-lecteur revient au titre suivant.", "Otherwise the mini player comes back on the next track."),
         ["IconeDeLaSourceCliquable"] = ("Icône de la source cliquable", "Clickable source icon"),
-        ["UnClicSurLIconeOuvre"] = ("Un clic sur l'icône de l'application l'ouvre.", "Clicking the app icon opens the app."),
+        ["UnClicSurLIconeOuvre"] = ("Un clic sur l'icône de l'application l'ouvre, un second la réduit.", "Clicking the app icon opens the app, clicking again minimizes it."),
         ["TeinteLaCarteSelonLaPochette"] = ("Teinte la carte selon la pochette.", "Tints the card to match the album art."),
         ["UnClicSurLaBarre"] = ("Un clic sur la barre avance ou recule dans le titre.", "Clicking the bar skips forward or back in the track."),
         ["Applications"] = ("Applications", "Apps"),

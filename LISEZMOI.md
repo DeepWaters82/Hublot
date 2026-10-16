@@ -60,7 +60,8 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
 - **Progression cliquable** (avec la progression) : un clic sur la barre avance ou recule dans le titre,
   si l'application l'accepte ; au survol, la barre s'épaissit et indique le temps visé.
 - **Icône de la source cliquable** (option) : un clic sur l'icône de l'application, en haut à droite de
-  la carte, ouvre l'application (sa fenêtre passe au premier plan ; pour un navigateur, sa dernière fenêtre).
+  la carte, ouvre l'application (sa fenêtre passe au premier plan ; pour un navigateur, sa dernière fenêtre) ;
+  un second clic, l'application étant au premier plan, la réduit.
 - **Couleurs de la pochette** (activé par défaut) : la carte prend une teinte tirée de la pochette, et le
   bouton lecture / pause et la progression sa couleur dominante, à la manière de Material You. Une pochette
   en noir et blanc garde les couleurs de Windows.

@@ -198,9 +198,18 @@ internal static class MediaApps
     /// Store en veille), elle est lancée depuis le dossier « Applications » du shell, ce qui réactive l'instance
     /// ouverte. Navigateur : sa fenêtre la plus récente (Windows ne dit pas quel onglet joue), jamais une
     /// nouvelle fenêtre. Le clic vient d'être reçu par Hublot : Windows l'autorise à changer de premier plan.
+    /// Déjà au premier plan (second clic) : la fenêtre est réduite. La popup ne prend jamais le focus, le
+    /// premier plan est donc toujours celui d'avant le clic.
     /// </summary>
     public static void Activate(string appId)
     {
+        var foreground = User32.GetAncestor(User32.GetForegroundWindow(), User32.GA_ROOT);
+        if (foreground != 0 && Owns(foreground, appId))
+        {
+            User32.ShowWindow(foreground, User32.SW_MINIMIZE);
+            Log.Write($"Application source réduite : {DisplayName(appId)}");
+            return;
+        }
         for (nint w = User32.FindWindowExW(0, 0, null, null); w != 0; w = User32.FindWindowExW(0, w, null, null))
         {
             if (User32.IsWindowVisible(w) == 0 || User32.GetWindow(w, User32.GW_OWNER) != 0 || User32.IsCloaked(w) || !Owns(w, appId)) continue;
