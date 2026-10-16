@@ -39,7 +39,6 @@ public partial class MainWindow : Window
         Loaded += (_, _) => MovePill(animate: false);
         Nav.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler((_, _) => MovePill(animate: false)));
         DataContext = _vm;
-        Activated += (_, _) => _vm.RefreshPinnedPlacement();
         _vm.LanguageChanged += () => Dispatcher.BeginInvoke(() => ((App)Application.Current).Restart("General"));
         _pages = new()
         {

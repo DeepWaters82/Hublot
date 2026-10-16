@@ -114,13 +114,26 @@ src/Hublot/
 - Déconnexion différée de 2 s (annulée si le périphérique revient). Veille : même option que le Bluetooth.
 - **Non testé avec une vraie clé** au moment de l'écriture (aucune n'était branchée) : vérifier avec `--log`.
 
-## Mini-lecteur, progression, premier plan (module « Lecture en cours »)
+## Lecteur, progression, premier plan (module « Lecture en cours »)
 
-- **Carte épinglée** : second `Popup` créé à la demande par `App` (`IHost.Pin` / `IsPinned` /
-  `PinnedCard`), `PopupMode.Pinned` (pas de fermeture automatique), `PositionOverride` =
-  `MediaPinnedPosition`. Même emplacement que les popups : `ReservedDip` les empile au-dessus.
-  Fermée par clic (`Hidden`) → plus demandée jusqu'au prochain titre / reprise. Le module choisit la
-  session (qui joue, de préférence la dernière lancée) et saute les popups de titre tant qu'elle est visible.
+- **Un seul lecteur** (3.6.0) : second `Popup` créé à la demande par `App` (`PinnedPopup()`),
+  `PopupMode.Pinned`, `PositionOverride` = `MediaPinnedPosition`, `MonitorOverride` = `MediaPinnedMonitor(Device)`.
+  - **Temporaire** (`IHost.ShowPlayer`, règles de `Notify` : lancement, plein écran) : `Popup.ShowPinned(card,
+    temporary: true)` → fermeture automatique comme une carte d'événement (`RestartDismiss`, survol). C'est la
+    « popup musicale » : plus de carte musicale dans le popup principal (sauf liste, survol, et l'aperçu quand
+    le permanent est affiché).
+  - **Permanent** (`IHost.Pin` / `IsPinned` = `_pinnedWanted`) : `MediaPinned` **et** raccourci actif
+    (`NowPlayingModule.Permanent`). `MediaPinned` n'a plus d'option dans Hublot Core : le raccourci
+    (`TogglePinned`) le bascule et le service l'enregistre (`SetPermanent` → `Settings.Save`). Un temporaire
+    affiché devient permanent sur place. Fermé par clic (`Hidden` avec `_pinnedWanted` non nul) → plus demandé
+    jusqu'au prochain titre / reprise. Le module choisit la session (qui joue, de préférence la dernière
+    lancée) ; tant qu'il est demandé, `ShowPlayer` ne fait rien (c'est lui qui change).
+  - Emplacement unique, changé **seulement à la souris** (plus de listes dans Hublot Core). Même emplacement
+    que les popups : `ReservedDip` les empile au-dessus. Hublot Core relit `MediaPinned*` sur le disque avant
+    chaque enregistrement (`SettingsViewModel.SyncServiceOwned`) : réglages écrits par le service.
+  - Migration (`Settings.MigratePlayer`, `MediaPlayerVersion` 0 → 1) : sans mini-lecteur, l'emplacement du
+    lecteur = celui des popups (là où s'affichaient les popups musicaux) ; mini-lecteur sans raccourci →
+    raccourci réactivé.
 - **Plein écran** : `TrayIcon.WatchFullscreen` déclare une barre d'application (ABM_NEW, sans position)
   pour recevoir `ABN_FULLSCREENAPP` — aucun sondage ; seulement quand une carte épinglée existe. La carte
   sort en fondu (`App.FadePinned` → `Popup.Dismiss`, ~220 ms) ; `_pinnedFading` distingue cette sortie
@@ -158,13 +171,13 @@ src/Hublot/
   écran (`MonitorAt`) et emplacement (tiers de la zone de travail en largeur, moitié en hauteur) →
   `Dropped` → `App.OnPinnedDropped` enregistre `MediaPinnedPosition` + écran (principal, sinon `Specific` =
   `DisplayInfo` de même origine) dans settings.ini, puis `Popup.Settle` : nouvelle `Placement` (`Prepare`,
-  échelle de l'écran visé) et calage animé de 300 ms (decelerate) depuis le point de lâcher. Hublot Core relit
-  l'emplacement à chaque activation de sa fenêtre (`RefreshPinnedPlacement`) pour ne pas l'écraser.
+  échelle de l'écran visé) et calage animé de 300 ms (decelerate) depuis le point de lâcher. Vaut pour le
+  lecteur temporaire comme permanent (même `Popup`).
 - **Clic = masqué jusqu'au raccourci** (`MediaPinnedClickUntilHotkey`, désactivé, 3.4.0, exige le
   raccourci) : `App`, événement `Hidden` du mini-lecteur fermé par un clic (`_pinnedWanted` non nul ;
-  `Pin(null)` l'a déjà vidé) → `NowPlayingModule.HideUntilHotkey` (`_pinnedOverride = false`). Changement d'option → `Restyle` du mini-lecteur.
+  `Pin(null)` l'a déjà vidé) → `NowPlayingModule.HideUntilHotkey` (`SetPermanent(false)`, comme le raccourci). Changement d'option → `Restyle` du mini-lecteur.
 - **Raccourci du mini-lecteur** : second `RegisterHotKey` (`TrayIcon.PinnedHotkey`) →
-  `NowPlayingModule.TogglePinned` ; `_pinnedOverride` prime sur l'option jusqu'au prochain changement de réglages.
+  `NowPlayingModule.TogglePinned` : bascule le lecteur permanent, retenu dans `MediaPinned`.
 - **Bouton lecture / pause** : morphing (`MediaCard.DrawPlayPause(shape 0→1)`, 260 ms) — chaque moitié du
   triangle devient une barre ; l'animation se poursuit d'une carte à la suivante (`ContinueFrom`).
   Au clic, l'état visé est maintenu côté module (`Tracker.PendingPlaying`, 3 s au plus) jusqu'à
@@ -216,7 +229,7 @@ src/Hublot/
   (`Marshal.Read*`, structures documentées : chemin 72 o, mode 64 o, nom de cible 420 o). Vérifié sur
   3 écrans (DisplayPort, DVI).
 - Choix de l'écran : `Settings.Monitor = Specific` + `MonitorDevice` (= `DisplayInfo.Path`, stable) ;
-  mini-lecteur : `MediaPinnedMonitor` / `MediaPinnedMonitorDevice` (`Popup.MonitorOverride`). Placement :
+  lecteur : `MediaPinnedMonitor` / `MediaPinnedMonitorDevice` (`Popup.MonitorOverride`, choisi à la souris). Placement :
   `MonitorFromPoint(centre de l'écran)`. Numéros = ceux de Windows (DISPLAYn) ; *Identifier* =
   `ScreenIdentifier` (fenêtres WPF positionnées en pixels physiques).
 - `DisplayModule` : `WM_DISPLAYCHANGE` (fenêtre hôte de premier niveau → `Module.OnDisplayChanged`),

@@ -41,7 +41,7 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
   popup pour les aperçus au survol des miniatures YouTube). Pas de popup pour une pause, ni (option)
   quand l'application qui joue est au premier plan.
 - **Plateformes musicales uniquement** (activé par défaut) : seules les grandes plateformes déclenchent
-  la popup et le mini-lecteur — Spotify, Deezer, Apple Music, iTunes, Amazon Music, YouTube Music, TIDAL,
+  le lecteur — Spotify, Deezer, Apple Music, iTunes, Amazon Music, YouTube Music, TIDAL,
   Qobuz, SoundCloud, Pandora, Napster — en application ou dans le navigateur. Windows ne donne pas
   l'adresse du site joué dans un navigateur ; Hublot y retient les onglets **avec album** : YouTube Music,
   Spotify, Deezer ou Apple Music indiquent l'album, YouTube ou Netflix non. Les vidéos, les autres
@@ -50,16 +50,15 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
   uniquement »), *Tout afficher* (radio web dans Chrome, VLC… — mais aussi ses vidéos) ou *Masquer*.
   Windows identifie le navigateur, pas l'onglet : le choix vaut pour tous les sites de ce navigateur.
   Microsoft Teams (appels, réunions) est masqué par défaut.
-- Options : popup aussi à la reprise, aussi à la mise en pause ; **progression du titre** (temps écoulé,
-  barre, durée — si l'application la communique) ; **mini-lecteur permanent** (désactivé par défaut) :
-  une carte de lecture reste affichée à son propre emplacement (en bas à droite par défaut) tant qu'un
-  titre est en cours ou en pause, effacée en fondu pendant un plein écran ; un clic dessus la ferme jusqu'au titre suivant,
-  ou jusqu'au prochain appui sur son raccourci (option « Le clic masque jusqu'au raccourci »).
-  On le **déplace à la souris** : il suit le pointeur, y compris vers un autre écran, puis se cale sur
-  l'emplacement le plus proche (coins, haut ou bas au centre) ; l'emplacement et l'écran sont retenus,
-  comme s'ils avaient été choisis dans les paramètres.
-  Un **raccourci clavier** (désactivé par défaut, Ctrl + Alt + P) le masque ou le réaffiche — y compris
-  à la demande quand l'option permanente est désactivée.
+- **Un seul lecteur** : il s'affiche le temps d'une notification à chaque titre (options : aussi à la
+  reprise, aussi à la mise en pause), toujours au même emplacement. On le **déplace à la souris** : il suit
+  le pointeur, y compris vers un autre écran, puis se cale sur l'emplacement le plus proche (coins, haut ou
+  bas au centre) ; l'emplacement et l'écran sont retenus. C'est le seul moyen de le placer.
+- **Lecteur permanent** : le **raccourci clavier** (Ctrl + Alt + P par défaut) garde le lecteur affiché en
+  permanence, ou le masque ; Hublot s'en souvient, même après un redémarrage. Il est effacé en fondu pendant
+  un plein écran ; un clic dessus le ferme jusqu'au titre suivant, ou le masque comme le raccourci (option
+  « Le clic masque jusqu'au raccourci »). Sans raccourci actif, pas de lecteur permanent.
+- **Progression du titre** (temps écoulé, barre, durée — si l'application la communique).
 - **Progression cliquable** (avec la progression) : un clic sur la barre avance ou recule dans le titre,
   si l'application l'accepte ; au survol, la barre s'épaissit et indique le temps visé.
 - **Icône de la source cliquable** (option) : un clic sur l'icône de l'application, en haut à droite de
@@ -70,8 +69,8 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
   en noir et blanc garde les couleurs de Windows.
 - Les notifications de Windows (Teams, Messages, Outlook…) s'affichent toujours **au-dessus** des
   popups de Hublot : Windows les place dans une couche réservée au système. Elles apparaissent en bas à
-  droite, comme le mini-lecteur par défaut, et le recouvrent le temps de leur affichage. Pour éviter
-  ce chevauchement, placez le mini-lecteur dans un autre coin (réglage « Afficher la lecture en permanence »).
+  droite, et recouvrent le lecteur s'il s'y trouve, le temps de leur affichage. Pour éviter ce
+  chevauchement, faites glisser le lecteur dans un autre coin.
 - « Pas de popup si l'application est au premier plan » ne concerne jamais un onglet de navigateur
   (Windows ne dit pas quel onglet joue) : la popup s'affiche devant Chrome, sauf en plein écran.
 
@@ -97,8 +96,8 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
 
 ## Écrans, démarrage, claviers en veille
 
-- **Écran des popups** (Apparence) et **écran du mini-lecteur** (Lecture en cours) : écran principal,
-  écran de la souris (popups), ou un écran précis. Le bouton *Identifier* affiche le numéro de chaque
+- **Écran des popups** (Apparence) : écran principal, écran de la souris, ou un écran précis. Le lecteur,
+  lui, se place sur un autre écran en l'y faisant glisser. Le bouton *Identifier* affiche le numéro de chaque
   écran. Un écran choisi puis débranché : retour à l'écran principal.
 - **Module Écrans** : popup au branchement / débranchement d'un écran. Jamais au lancement de Windows ou
   de Hublot, ni quand un écran se rallume (veille des écrans, sortie de veille du PC).

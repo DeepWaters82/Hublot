@@ -26,6 +26,13 @@ internal interface IHost
     /// <summary>Complément d'information pour une carte affichée de même clé (pas de nouvel affichage).</summary>
     void Update(CardContent card);
 
+    /// <summary>
+    /// Lecteur le temps d'une notification, à l'emplacement du lecteur permanent (un seul lecteur : même place,
+    /// déplacé à la souris) ; mêmes règles que <see cref="Notify(CardContent)"/>. Sans effet si le lecteur
+    /// permanent est demandé. Une carte de même taille déjà visible est remplacée sur place.
+    /// </summary>
+    void ShowPlayer(CardContent card);
+
     /// <summary>Carte d'événement actuellement affichée, s'il y en a une.</summary>
     CardContent? CurrentNotification { get; }
 
@@ -33,7 +40,7 @@ internal interface IHost
     void Invalidate();
 
     /// <summary>
-    /// Carte épinglée (mini-lecteur) : affichée en permanence à son propre emplacement, masquée pendant
+    /// Lecteur permanent : affiché en permanence à son propre emplacement, masqué pendant
     /// une application en plein écran ; null pour la retirer. Une carte de même taille est remplacée sur place.
     /// </summary>
     void Pin(CardContent? card);
@@ -42,7 +49,7 @@ internal interface IHost
     /// Faux après un clic de l'utilisateur qui l'a fermée.</summary>
     bool IsPinned { get; }
 
-    /// <summary>Carte épinglée actuellement visible.</summary>
+    /// <summary>Carte du lecteur actuellement visible (permanente ou temporaire).</summary>
     CardContent? PinnedCard { get; }
 
     /// <summary>Ouvre Hublot Core, éventuellement sur une page.</summary>

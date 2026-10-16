@@ -146,41 +146,19 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Le mini-lecteur a pu être déplacé à la souris depuis l'ouverture des paramètres (le service enregistre
-    /// son emplacement) : relu à chaque activation de la fenêtre, pour ne pas l'écraser au prochain réglage.
+    /// Réglages écrits par le service, pas par ces paramètres : emplacement et écran du lecteur (déplacé à la
+    /// souris), lecteur permanent (raccourci clavier). Relus juste avant chaque enregistrement, pour ne pas
+    /// écraser un changement fait pendant que la fenêtre est ouverte.
     /// </summary>
-    public void RefreshPinnedPlacement()
+    private void SyncServiceOwned()
     {
         Settings disk;
         try { disk = Settings.Load(); }
         catch (Exception) { return; }
-        if (disk.MediaPinnedPosition == _s.MediaPinnedPosition && disk.MediaPinnedMonitor == _s.MediaPinnedMonitor
-            && disk.MediaPinnedMonitorDevice == _s.MediaPinnedMonitorDevice) return;
+        _s.MediaPinned = disk.MediaPinned;
         _s.MediaPinnedPosition = disk.MediaPinnedPosition;
         _s.MediaPinnedMonitor = disk.MediaPinnedMonitor;
         _s.MediaPinnedMonitorDevice = disk.MediaPinnedMonitorDevice;
-        OnPropertyChanged(nameof(MediaPinnedPositionIndex));
-        OnPropertyChanged(nameof(PinnedMonitorChoiceIndex));
-    }
-
-    public List<string> PinnedMonitorChoices => [L.T("Display.Primary"), .. _displays.Select((d, i) => DisplayLabel(d, i))];
-
-    public int PinnedMonitorChoiceIndex
-    {
-        get => _s.MediaPinnedMonitor == PopupMonitor.Specific
-               && _displays.FindIndex(d => d.Path == _s.MediaPinnedMonitorDevice) is int i and >= 0 ? i + 1 : 0;
-        set => Set(() =>
-        {
-            if (value >= 1 && value - 1 < _displays.Count)
-            {
-                _s.MediaPinnedMonitor = PopupMonitor.Specific;
-                _s.MediaPinnedMonitorDevice = _displays[value - 1].Path;
-            }
-            else
-            {
-                _s.MediaPinnedMonitor = PopupMonitor.Primary;
-            }
-        }, preview: false);
     }
     public int Margin { get => _s.Margin; set => Set(() => _s.Margin = value); }
 
@@ -247,8 +225,6 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public bool MediaNotifyOnResume { get => _s.MediaNotifyOnResume; set => Set(() => _s.MediaNotifyOnResume = value, preview: false); }
     public bool MediaNotifyOnPause { get => _s.MediaNotifyOnPause; set => Set(() => _s.MediaNotifyOnPause = value, preview: false); }
     public bool MediaHideWhenAppFocused { get => _s.MediaHideWhenAppFocused; set => Set(() => _s.MediaHideWhenAppFocused = value, preview: false); }
-    public bool MediaPinned { get => _s.MediaPinned; set => Set(() => _s.MediaPinned = value, preview: false); }
-    public int MediaPinnedPositionIndex { get => (int)_s.MediaPinnedPosition; set => Set(() => _s.MediaPinnedPosition = (PopupPosition)value, preview: false); }
     public bool MediaSeekable { get => _s.MediaSeekable; set => Set(() => _s.MediaSeekable = value, preview: false); }
     public bool MediaShowProgress { get => _s.MediaShowProgress; set => Set(() => _s.MediaShowProgress = value, preview: false); }
     public bool MediaCoverColors { get => _s.MediaCoverColors; set => Set(() => _s.MediaCoverColors = value, preview: false); }
@@ -317,6 +293,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     private void Set(Action apply, bool preview = true, [CallerMemberName] string? name = null)
     {
+        SyncServiceOwned();
         apply();
         try { _s.Save(); }
         catch (Exception) { return; }

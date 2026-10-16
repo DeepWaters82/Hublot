@@ -64,8 +64,6 @@ internal sealed class NowPlayingModule : Module
     /// <summary>Dernière application à avoir lancé un titre : c'est elle que montre le mini-lecteur.</summary>
     private string? _activeApp;
     private Timer? _tick, _unpin;
-    /// <summary>Choix fait au raccourci clavier (afficher / masquer le mini-lecteur), prioritaire sur l'option ; null = l'option.</summary>
-    private bool? _pinnedOverride;
 
     public override string Id => "nowplaying";
     public override string Name => "Lecture en cours";
@@ -78,7 +76,7 @@ internal sealed class NowPlayingModule : Module
     {
         _host = host;
         _initialSync = true;
-        _pinnedSetting = host.Settings.MediaPinned;
+        _wasPermanent = host.Settings is { MediaPinned: true, MediaPinnedHotkeyEnabled: true };
         foreach (var app in MediaStore.LoadApps()) _apps[app.Id] = app;
         _ = InitAsync();
     }
@@ -325,13 +323,13 @@ internal sealed class NowPlayingModule : Module
             Log.Write($"Média ignoré (application au premier plan) : {state.AppName}");
             return;
         }
-        if (Host.PinnedCard is MediaCard)
+        if (Host.IsPinned)
         {
             Log.Write($"Média, {reason} : affiché par le mini-lecteur ({state.AppName})");
             return;
         }
         Log.Write($"Média, {reason} : {state.Artist} — {state.Title} ({state.AppName})");
-        Host.Notify(Card(state));
+        Host.ShowPlayer(Card(state));
         EnsureTicking();
     }
 
@@ -342,48 +340,71 @@ internal sealed class NowPlayingModule : Module
     private bool NotMusicFiltered(MediaState state) =>
         state.NotMusic is not null && Host.Settings.MediaMusicOnly && !Host.Settings.MediaAlwaysShownApps.Contains(state.AppId);
 
-    // ── Mini-lecteur (carte épinglée) et progression ───────────────────────────────────────
+    // ── Lecteur permanent et progression ───────────────────────────────────────────────────
 
-    /// <summary>Option « en permanence » au dernier réglage connu : seul son passage à « activé » fait apparaître la carte.</summary>
-    private bool _pinnedSetting;
+    /// <summary>
+    /// Un seul lecteur : le temps d'une notification à chaque titre, ou en permanence. Le permanent se choisit au
+    /// raccourci clavier (retenu d'une session à l'autre : <see cref="Settings.MediaPinned"/>, écrit par le service) ;
+    /// sans raccourci actif, pas de lecteur permanent.
+    /// </summary>
+    private bool Permanent => Host.Settings is { MediaPinned: true, MediaPinnedHotkeyEnabled: true };
+
+    /// <summary>Lecteur permanent au dernier réglage connu : seul son passage à « actif » fait apparaître la carte.</summary>
+    private bool _wasPermanent;
 
     public override void ApplySettings(Settings settings)
     {
-        // Un changement d'un autre réglage ne doit ni relancer le mini-lecteur, ni le rouvrir s'il a été fermé.
-        bool turnedOn = settings.MediaPinned && !_pinnedSetting;
-        if (settings.MediaPinned != _pinnedSetting) _pinnedOverride = null;
-        _pinnedSetting = settings.MediaPinned;
+        // Un changement d'un autre réglage ne doit ni relancer le lecteur, ni le rouvrir s'il a été fermé.
+        bool permanent = Permanent, turnedOn = permanent && !_wasPermanent;
+        _wasPermanent = permanent;
         UpdatePinned(trigger: turnedOn);
     }
 
+    /// <summary>Lecteur permanent choisi ou abandonné : retenu dans les paramètres.</summary>
+    private void SetPermanent(bool on)
+    {
+        var settings = Host.Settings;
+        _wasPermanent = on && settings.MediaPinnedHotkeyEnabled;
+        if (settings.MediaPinned == on) return;
+        settings.MediaPinned = on;
+        try
+        {
+            settings.Save();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Enregistrement du lecteur permanent", ex);
+        }
+    }
+
     /// <summary>
-    /// Raccourci clavier : masque le mini-lecteur, ou l'affiche — même si l'option « en permanence » est
-    /// désactivée (mini-lecteur à la demande). Le choix tient jusqu'au prochain appui ou changement de réglages.
+    /// Raccourci clavier : le lecteur passe en permanent (un lecteur temporaire affiché le devient sur place), ou
+    /// le lecteur permanent est masqué — les titres suivants s'affichent alors le temps d'une notification.
     /// </summary>
     public void TogglePinned()
     {
         if (_host is null) return;
         if (Host.IsPinned)
         {
-            _pinnedOverride = false;
+            SetPermanent(false);
             Host.Pin(null);
-            Log.Write("Mini-lecteur masqué (raccourci)");
+            Log.Write("Lecteur permanent masqué (raccourci)");
             return;
         }
-        _pinnedOverride = true;
+        SetPermanent(true);
         UpdatePinned(trigger: true);
         if (!Host.IsPinned)
             Host.Notify(new MessageCard("media-none", Glyphs.Music, L.T("Message.NothingPlaying"), L.T("Message.PlayerNextTrack")));
     }
 
     /// <summary>
-    /// Clic sur le mini-lecteur avec l'option « masquer jusqu'au raccourci » : il ne revient plus au titre
-    /// suivant, seulement au prochain appui sur son raccourci (ou au prochain changement de l'option permanente).
+    /// Clic sur le lecteur permanent avec l'option « masquer jusqu'au raccourci » : comme le raccourci, il n'est
+    /// plus permanent (sinon, il revient au titre suivant).
     /// </summary>
     public void HideUntilHotkey()
     {
-        _pinnedOverride = false;
-        Log.Write("Mini-lecteur masqué jusqu'au raccourci (clic)");
+        SetPermanent(false);
+        Log.Write("Lecteur permanent masqué jusqu'au raccourci (clic)");
     }
 
     /// <summary>
@@ -394,7 +415,7 @@ internal sealed class NowPlayingModule : Module
     private void UpdatePinned(bool trigger)
     {
         if (_host is null) return;
-        if (!(_pinnedOverride ?? Host.Settings.MediaPinned))
+        if (!Permanent)
         {
             if (Host.IsPinned) Host.Pin(null);
             return;
@@ -430,7 +451,7 @@ internal sealed class NowPlayingModule : Module
         state = WithPending(tracker, state with { Timeline = ReadTimeline(tracker.Session) });
         tracker.State = state;
         Host.Update(Card(state));
-        if (Host.PinnedCard is MediaCard { State.AppId: var pinned } && pinned == tracker.AppId) Host.Pin(Card(state));
+        if (Host.IsPinned && Host.PinnedCard is MediaCard { State.AppId: var pinned } && pinned == tracker.AppId) Host.Pin(Card(state));
         EnsureTicking();
     }
 
@@ -538,7 +559,7 @@ internal sealed class NowPlayingModule : Module
             if (tracker.State is { } shown)
             {
                 Host.Update(Card(shown));
-                if (Host.PinnedCard is MediaCard { State.AppId: var pinned } && pinned == tracker.AppId) Host.Pin(Card(shown));
+                if (Host.IsPinned && Host.PinnedCard is MediaCard { State.AppId: var pinned } && pinned == tracker.AppId) Host.Pin(Card(shown));
             }
             EnsureTicking();
         }

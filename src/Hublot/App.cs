@@ -180,7 +180,32 @@ internal sealed class App : IHost
         _popup.ShowList(cards, longer: false);
     }
 
-    public void Update(CardContent card) => _popup.Update(card);
+    public void Update(CardContent card)
+    {
+        _popup.Update(card);
+        _pinned?.Update(card);
+    }
+
+    /// <summary>
+    /// Lecteur le temps d'une notification, à son emplacement (celui du lecteur permanent) ; mêmes règles que
+    /// <see cref="Notify(CardContent)"/>. Sans effet si le lecteur permanent est demandé : c'est lui qui change.
+    /// </summary>
+    public void ShowPlayer(CardContent card)
+    {
+        if (IsPinned) return;
+        if (Environment.TickCount64 < _quietUntil)
+        {
+            Log.Write($"Lecteur ignoré (lancement) : {card.Key}");
+            return;
+        }
+        if (!_settings.ShowInFullscreen && !card.ShowOverFullscreen(_settings) && UserIsBusy())
+        {
+            Log.Write($"Lecteur ignoré (plein écran) : {card.Key}");
+            return;
+        }
+        PinnedPopup().ShowPinned(card, temporary: true);
+        UpdateReserve();
+    }
 
     public CardContent? CurrentNotification => _popup.Notification;
 
@@ -205,6 +230,25 @@ internal sealed class App : IHost
             _tray.WatchFullscreen(false);
             return;
         }
+        var pinned = PinnedPopup();
+        _tray.WatchFullscreen(true);
+        if (!_settings.ShowInFullscreen && UserIsBusy())
+        {
+            if (pinned.PinnedCard is not null) Log.Write("Mini-lecteur masqué (plein écran)");
+            FadePinned();
+        }
+        else
+        {
+            if (pinned.PinnedCard is null) Log.Write($"Mini-lecteur affiché : {card.Key}");
+            _pinnedFading = false;
+            pinned.ShowPinned(card);
+        }
+        UpdateReserve();
+    }
+
+    /// <summary>Popup du lecteur (créé au premier affichage), à l'emplacement et sur l'écran du lecteur.</summary>
+    private Popup PinnedPopup()
+    {
         if (_pinned is null)
         {
             _pinned = new Popup(_settings) { Draggable = true };
@@ -229,19 +273,7 @@ internal sealed class App : IHost
         }
         _pinned.PositionOverride = _settings.MediaPinnedPosition;
         _pinned.MonitorOverride = (_settings.MediaPinnedMonitor, _settings.MediaPinnedMonitorDevice);
-        _tray.WatchFullscreen(true);
-        if (!_settings.ShowInFullscreen && UserIsBusy())
-        {
-            if (_pinned.PinnedCard is not null) Log.Write("Mini-lecteur masqué (plein écran)");
-            FadePinned();
-        }
-        else
-        {
-            if (_pinned.PinnedCard is null) Log.Write($"Mini-lecteur affiché : {card.Key}");
-            _pinnedFading = false;
-            _pinned.ShowPinned(card);
-        }
-        UpdateReserve();
+        return _pinned;
     }
 
     /// <summary>
@@ -398,7 +430,12 @@ internal sealed class App : IHost
         switch (kind)
         {
             case 1: _popup.ShowList([.. media, .. bluetooth, .. usb]); break;
-            case 2: _popup.Show(media[0]); break;
+            // Le lecteur à son emplacement ; lecteur permanent affiché : l'aperçu passe par les popups, sans le remplacer.
+            case 2:
+                if (IsPinned) _popup.Show(media[0]);
+                else PinnedPopup().ShowPinned(media[0], temporary: true);
+                UpdateReserve();
+                break;
             case 3: _popup.Show(usb[0]); break;
             case 4: _popup.Show(power[0]); break;
             case 5: ShowDisplays(); break;

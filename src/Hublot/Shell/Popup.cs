@@ -12,7 +12,10 @@ internal enum PopupMode
     List,
     /// <summary>Carte du survol de l'icône de notification, tant que la souris est sur l'icône ou la carte.</summary>
     Hover,
-    /// <summary>Carte épinglée (mini-lecteur) : pas de fermeture automatique, à son propre emplacement.</summary>
+    /// <summary>
+    /// Carte du lecteur, à son propre emplacement : permanente (pas de fermeture automatique) ou le temps
+    /// d'une notification (<see cref="Popup.ShowPinned"/> avec <c>temporary</c>).
+    /// </summary>
     Pinned,
 }
 
@@ -91,6 +94,8 @@ internal sealed class Popup
     // Glissement à la souris (carte épinglée) : appui en cours, point d'appui à l'écran, décalage suivi ;
     // puis calage animé sur le nouvel emplacement (décalage de départ qui revient à zéro).
     private bool _pressed, _dragging, _snapping;
+    /// <summary>Carte du lecteur affichée le temps d'une notification (fermeture automatique), et non en permanence.</summary>
+    private bool _temporary;
     private POINT _pressAt;
     private int _dragX, _dragY, _snapX, _snapY;
     private long _snapStart;
@@ -145,18 +150,23 @@ internal sealed class Popup
     public CardContent? PinnedCard => _phase is Phase.Entering or Phase.Shown && _mode == PopupMode.Pinned ? _cards[0].Content : null;
 
     /// <summary>
-    /// Carte épinglée : affichée sans fermeture automatique ; une carte épinglée de même taille déjà
-    /// visible est remplacée sur place (nouveau titre, lecture / pause…).
+    /// Carte du lecteur : en permanence, ou le temps d'une notification (<paramref name="temporary"/> : fermeture
+    /// automatique comme une carte d'événement). Une carte de même taille déjà visible est remplacée sur place
+    /// (nouveau titre, lecture / pause…, ou passage du temporaire au permanent).
     /// </summary>
-    public void ShowPinned(CardContent content)
+    public void ShowPinned(CardContent content, bool temporary = false)
     {
         if (PinnedCard is { } current && current.Width == content.Width && current.Height == content.Height)
         {
             content.ContinueFrom(current, Stopwatch.GetTimestamp(), Clock, replay: false);
             _cards[0].Content = content;
+            _temporary = temporary;
+            if (temporary) RestartDismiss();
+            else _clock.Stop(DismissTimer);
             Pump();
             return;
         }
+        _temporary = temporary;
         Present([content], PopupMode.Pinned, null);
     }
 
@@ -325,7 +335,7 @@ internal sealed class Popup
                     card.Hover = -1;
                     Pump();
                 }
-                if (_hovered == 0 && _mode != PopupMode.Pinned && _phase is Phase.Entering or Phase.Shown)
+                if (_hovered == 0 && (_mode != PopupMode.Pinned || _temporary) && _phase is Phase.Entering or Phase.Shown)
                     _clock.Start(DismissTimer, _mode == PopupMode.Hover ? 350 : AfterHoverMs);
                 break;
 
@@ -442,7 +452,7 @@ internal sealed class Popup
 
     private void RestartDismiss()
     {
-        if (_mode is PopupMode.Hover or PopupMode.Pinned || _hovered > 0) return;
+        if (_mode == PopupMode.Hover || _mode == PopupMode.Pinned && !_temporary || _hovered > 0) return;
         int seconds = _settings.DurationSeconds + (_mode == PopupMode.List && _listLonger ? 3 : 0);
         _clock.Start(DismissTimer, (uint)seconds * 1000);
     }

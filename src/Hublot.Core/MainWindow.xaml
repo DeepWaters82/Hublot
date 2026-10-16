@@ -578,27 +578,8 @@
                         </local:SettingsCard>
 
                         <TextBlock Text="{local:Tr MiniLecteur}" Style="{StaticResource SectionHeader}" />
-                        <local:SettingsCard Icon="&#xE718;" Header="{local:Tr AfficherLaLectureEnPermanence}"
-                                            Description="{local:Tr UneCarteDeLectureReste}">
-                            <StackPanel Orientation="Horizontal">
-                                <ComboBox SelectedIndex="{Binding MediaPinnedPositionIndex}" Width="170" VerticalAlignment="Center" Margin="0,0,16,0" IsEnabled="{Binding MediaPinned}">
-                                    <ComboBoxItem Content="{local:Tr EnHautAGauche}" />
-                                    <ComboBoxItem Content="{local:Tr EnHautAuCentre}" />
-                                    <ComboBoxItem Content="{local:Tr EnHautADroite}" />
-                                    <ComboBoxItem Content="{local:Tr EnBasAGauche}" />
-                                    <ComboBoxItem Content="{local:Tr EnBasAuCentre}" />
-                                    <ComboBoxItem Content="{local:Tr EnBasADroite}" />
-                                </ComboBox>
-                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaPinned}" />
-                            </StackPanel>
-                        </local:SettingsCard>
-                        <local:SettingsCard Icon="&#xE7F4;" Header="{local:Tr EcranDuMiniLecteur}">
-                            <StackPanel Orientation="Horizontal">
-                                <ComboBox ItemsSource="{Binding PinnedMonitorChoices}" SelectedIndex="{Binding PinnedMonitorChoiceIndex}" Width="300"
-                                          VerticalAlignment="Center" IsEnabled="{Binding MediaPinned}" />
-                                <Button Content="{local:Tr Identifier}" Padding="12,4" Margin="8,0,0,0" Click="OnIdentifyScreens" VerticalAlignment="Center" />
-                            </StackPanel>
-                        </local:SettingsCard>
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="2,0,0,8" TextWrapping="Wrap"
+                                   Text="{local:Tr LeLecteurSAfficheAChaqueTitre}" />
                         <local:SettingsCard Icon="&#xE765;" Header="{local:Tr RaccourciClavierDuMiniLecteur}"
                                             Description="{local:Tr MasqueOuAfficheLeMini}">
                             <StackPanel Orientation="Horizontal">

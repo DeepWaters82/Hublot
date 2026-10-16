@@ -145,12 +145,21 @@ public sealed class Settings
     /// et les onglets de navigateur qui déclarent un album ; ni vidéos, ni autres applications.
     /// </summary>
     public bool MediaMusicOnly { get; set; } = true;
-    /// <summary>Carte de lecture affichée en permanence (mini-lecteur), à son propre emplacement.</summary>
+    /// <summary>
+    /// Lecteur permanent, choisi au raccourci clavier et enregistré par le service (plus d'option dans Hublot Core
+    /// depuis 3.6.0). Sinon, le lecteur s'affiche le temps d'une notification à chaque titre.
+    /// </summary>
     public bool MediaPinned { get; set; }
-    public PopupPosition MediaPinnedPosition { get; set; } = PopupPosition.BottomRight;
-    /// <summary>Écran du mini-lecteur (principal ou un écran choisi).</summary>
+    /// <summary>
+    /// Emplacement du lecteur, temporaire comme permanent (un seul lecteur), changé en le faisant glisser à la
+    /// souris et enregistré par le service.
+    /// </summary>
+    public PopupPosition MediaPinnedPosition { get; set; } = PopupPosition.BottomCenter;
+    /// <summary>Écran du lecteur (principal ou un écran précis), comme son emplacement.</summary>
     public PopupMonitor MediaPinnedMonitor { get; set; } = PopupMonitor.Primary;
     public string MediaPinnedMonitorDevice { get; set; } = "";
+    /// <summary>Format des réglages du lecteur : 0 = avant 3.6.0 (popup musical et mini-lecteur séparés), 1 = un seul lecteur.</summary>
+    public int MediaPlayerVersion { get; set; }
     /// <summary>Barre de progression du titre (position / durée), si l'application la communique.</summary>
     public bool MediaShowProgress { get; set; } = true;
     /// <summary>Clic sur la barre de progression : avance / recule dans le titre.</summary>
@@ -234,8 +243,23 @@ public sealed class Settings
     public static Settings Load()
     {
         var settings = LoadFile();
+        settings.MigratePlayer();
         L.Apply(settings.Language);
         return settings;
+    }
+
+    /// <summary>
+    /// 3.6.0 : popup musical et mini-lecteur ne font plus qu'un lecteur, à un seul emplacement. Sans mini-lecteur, le
+    /// lecteur reste là où s'affichaient les popups musicaux (l'emplacement des popups) ; mini-lecteur sans
+    /// raccourci : raccourci réactivé, seul moyen désormais de le masquer. Appliqué à chaque lecture tant que le
+    /// fichier n'est pas réenregistré (même résultat).
+    /// </summary>
+    private void MigratePlayer()
+    {
+        if (MediaPlayerVersion >= 1) return;
+        if (!MediaPinned) (MediaPinnedPosition, MediaPinnedMonitor, MediaPinnedMonitorDevice) = (Position, Monitor, MonitorDevice);
+        else if (!MediaPinnedHotkeyEnabled) MediaPinnedHotkeyEnabled = true;
+        MediaPlayerVersion = 1;
     }
 
     private static Settings LoadFile()
@@ -322,6 +346,7 @@ public sealed class Settings
         Add(nameof(MediaHideWhenAppFocused), MediaHideWhenAppFocused);
         Add(nameof(MediaMusicOnly), MediaMusicOnly);
         Add(nameof(MediaPinned), MediaPinned);
+        Add(nameof(MediaPlayerVersion), MediaPlayerVersion);
         Add(nameof(MediaPinnedPosition), MediaPinnedPosition);
         Add(nameof(MediaPinnedMonitor), MediaPinnedMonitor);
         Add(nameof(MediaPinnedMonitorDevice), MediaPinnedMonitorDevice);
@@ -408,6 +433,7 @@ public sealed class Settings
             case nameof(MediaHideWhenAppFocused): MediaHideWhenAppFocused = ParseBool(value, MediaHideWhenAppFocused); break;
             case nameof(MediaMusicOnly): MediaMusicOnly = ParseBool(value, MediaMusicOnly); break;
             case nameof(MediaPinned): MediaPinned = ParseBool(value, MediaPinned); break;
+            case nameof(MediaPlayerVersion): MediaPlayerVersion = ParseInt(value, MediaPlayerVersion, 0, 100); break;
             case nameof(MediaPinnedPosition): MediaPinnedPosition = ParseEnum(value, MediaPinnedPosition); break;
             case nameof(MediaPinnedMonitor): MediaPinnedMonitor = ParseEnum(value, MediaPinnedMonitor); break;
             case nameof(MediaPinnedMonitorDevice): MediaPinnedMonitorDevice = value; break;
