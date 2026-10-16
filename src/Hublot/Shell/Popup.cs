@@ -63,7 +63,9 @@ internal sealed class Popup
 {
     private const nuint DismissTimer = 1;
     private const uint AfterHoverMs = 2000;
-    private const double EnterMs = 480, FadeInMs = 220, LeaveMs = 220, StaggerMs = 45;
+    private const double EnterMs = 480, FadeInMs = 220, LeaveMs = 220, StaggerMs = 45, SnapMs = 300;
+    /// <summary>Déplacement (DIP) au-delà duquel un appui devient un glissement : un clic garde son effet.</summary>
+    private const float DragThresholdDip = 6;
 
     private enum Phase { Hidden, Entering, Shown, Leaving }
 
@@ -71,7 +73,7 @@ internal sealed class Popup
     {
         public CardContent Content = content;
         public PopupSurface Surface { get; } = surface;
-        public Placement Placement { get; } = placement;
+        public Placement Placement { get; set; } = placement;
         public long EnterStart;
         public int Hover = -1;
     }
@@ -86,6 +88,12 @@ internal sealed class Popup
     private long _phaseStart;
     private int _slideX, _slideY, _hovered;
     private bool _pumping;
+    // Glissement à la souris (carte épinglée) : appui en cours, point d'appui à l'écran, décalage suivi ;
+    // puis calage animé sur le nouvel emplacement (décalage de départ qui revient à zéro).
+    private bool _pressed, _dragging, _snapping;
+    private POINT _pressAt;
+    private int _dragX, _dragY, _snapX, _snapY;
+    private long _snapStart;
 
     public Popup(Settings settings)
     {
@@ -101,6 +109,14 @@ internal sealed class Popup
 
     /// <summary>Le popup vient d'être masqué (ressources graphiques libérées).</summary>
     public event Action? Hidden;
+
+    /// <summary>
+    /// Carte épinglée déplaçable à la souris. Lâchée : emplacement le plus proche (tiers de l'écran en largeur,
+    /// moitié en hauteur) et écran visé ; le propriétaire l'enregistre puis appelle <see cref="Settle"/>.
+    /// </summary>
+    public bool Draggable { get; set; }
+
+    public event Action<PopupPosition, nint>? Dropped;
 
     public bool IsVisible => _phase != Phase.Hidden;
 
@@ -217,6 +233,8 @@ internal sealed class Popup
         _cards = [];
         _hovered = 0;
         _phase = Phase.Hidden;
+        _pressed = _dragging = _snapping = false;
+        _dragX = _dragY = 0;
     }
 
     public void Dismiss()
@@ -285,7 +303,13 @@ internal sealed class Popup
                 _clock.Stop(DismissTimer); // reste affiché tant que la souris survole une carte
                 break;
 
+            case SurfaceInput.Press when card is not null:
+                _pressed = true;
+                _pressAt = CursorPos();
+                break;
+
             case SurfaceInput.Move when card is not null:
+                if (_pressed && Drag(card)) break;
                 int hit = card.Content.HitTest(x / card.Placement.Scale, y / card.Placement.Scale);
                 if (hit != card.Hover)
                 {
@@ -305,13 +329,115 @@ internal sealed class Popup
                     _clock.Start(DismissTimer, _mode == PopupMode.Hover ? 350 : AfterHoverMs);
                 break;
 
+            case SurfaceInput.Release when card is not null:
+                bool pressed = _pressed;
+                _pressed = false;
+                if (_dragging) Drop(card);
+                else if (pressed) ClickCard(card, x, y);
+                break;
+
+            case SurfaceInput.Cancel:
+                _pressed = false;
+                if (_dragging && card is not null) Drop(card);
+                break;
+
             case SurfaceInput.Click when card is not null:
-                int part = card.Content.HitTest(x / card.Placement.Scale, y / card.Placement.Scale);
-                if (part < 0) return;
-                if (card.Content.Click(part)) Dismiss();
-                else Pump(); // l'état a pu changer (lecture / pause…)
+                ClickCard(card, x, y);
                 break;
         }
+    }
+
+    private void ClickCard(Card card, int x, int y)
+    {
+        int part = card.Content.HitTest(x / card.Placement.Scale, y / card.Placement.Scale);
+        if (part < 0) return;
+        if (card.Content.Click(part)) Dismiss();
+        else Pump(); // l'état a pu changer (lecture / pause…)
+    }
+
+    private static unsafe POINT CursorPos()
+    {
+        POINT p;
+        User32.GetCursorPos(&p);
+        return p;
+    }
+
+    /// <summary>Appui en cours : la carte épinglée suit la souris une fois le seuil franchi (vrai si elle la suit).</summary>
+    private bool Drag(Card card)
+    {
+        if (!Draggable || _mode != PopupMode.Pinned || _phase is not (Phase.Entering or Phase.Shown)) return false;
+        var p = CursorPos();
+        int dx = p.X - _pressAt.X, dy = p.Y - _pressAt.Y;
+        if (!_dragging)
+        {
+            float threshold = DragThresholdDip * card.Placement.Scale;
+            if (Math.Abs(dx) < threshold && Math.Abs(dy) < threshold) return false;
+            _dragging = true;
+            card.Hover = -1;
+            // Calage encore en cours : la carte repart de là où elle est affichée.
+            var (sx, sy) = SnapOffset(Stopwatch.GetTimestamp(), Clock);
+            _snapping = false;
+            _pressAt = new POINT(_pressAt.X - sx, _pressAt.Y - sy);
+            (dx, dy) = (dx + sx, dy + sy);
+        }
+        (_dragX, _dragY) = (dx, dy);
+        Pump();
+        return true;
+    }
+
+    /// <summary>Carte lâchée : emplacement le plus proche de son centre, sur l'écran où elle se trouve.</summary>
+    private void Drop(Card card)
+    {
+        _dragging = false;
+        var pl = card.Placement;
+        var center = new POINT(pl.X + _dragX + pl.Width / 2, pl.Y + _dragY + pl.Height / 2);
+        var (monitor, _, r) = MonitorAt(center);
+        int third = (r.Right - r.Left) / 3;
+        bool top = center.Y < (r.Top + r.Bottom) / 2;
+        var position = center.X < r.Left + third ? (top ? PopupPosition.TopLeft : PopupPosition.BottomLeft)
+            : center.X >= r.Right - third ? (top ? PopupPosition.TopRight : PopupPosition.BottomRight)
+            : top ? PopupPosition.TopCenter : PopupPosition.BottomCenter;
+        if (Dropped is { } dropped) dropped(position, monitor);
+        else Settle();
+    }
+
+    /// <summary>
+    /// Carte épinglée reposée à son emplacement (après un glissement, <see cref="PositionOverride"/> et
+    /// <see cref="MonitorOverride"/> à jour) : elle y glisse en douceur depuis là où elle a été lâchée.
+    /// </summary>
+    public void Settle()
+    {
+        if (_mode != PopupMode.Pinned || _cards.Count == 0 || _phase is Phase.Hidden or Phase.Leaving)
+        {
+            _dragX = _dragY = 0;
+            return;
+        }
+        var card = _cards[0];
+        int fromX = card.Placement.X + _dragX, fromY = card.Placement.Y + _dragY;
+        var target = ComputeLayout([card.Content])[0];
+        if (target != card.Placement)
+        {
+            card.Placement = target;
+            card.Surface.Prepare(Theme.Resolve(_settings), _settings, target);
+        }
+        _dragX = _dragY = 0;
+        (_snapX, _snapY, _snapStart, _snapping) = (fromX - target.X, fromY - target.Y, Stopwatch.GetTimestamp(), true);
+        // Tout de suite : Prepare a déjà déplacé la fenêtre, elle est redessinée au point de départ du calage.
+        OnFrame();
+    }
+
+    /// <summary>Décalage restant du calage (pixels), qui revient à zéro ; zéro une fois arrivé.</summary>
+    private (int X, int Y) SnapOffset(long now, AnimClock clock)
+    {
+        if (!_snapping) return (0, 0);
+        double s = clock.Animate ? Easing.Clamp01(clock.Elapsed(_snapStart, now) / SnapMs) : 1;
+        if (s >= 1)
+        {
+            _snapping = false;
+            return (0, 0);
+        }
+        double k = 1 - Easing.Decelerate(s);
+        return ((int)Math.Round(_snapX * k), (int)Math.Round(_snapY * k));
     }
 
     private void RestartDismiss()
@@ -368,6 +494,11 @@ internal sealed class Popup
             busy = true;
         }
 
+        // Glissement à la souris, puis calage (carte épinglée).
+        var (snapX, snapY) = SnapOffset(now, clock);
+        if (_snapping) busy = true;
+        int extraX = _dragX + snapX, extraY = _dragY + snapY;
+
         bool entering = false;
         foreach (var card in _cards)
         {
@@ -393,7 +524,7 @@ internal sealed class Popup
             int hover = card.Hover;
             var settings = _settings;
             card.Surface.Render((c, r, t, s) => content.Draw(new CardContext(c, r, t, s, now, clock, hover, settings)),
-                opacity, (int)Math.Round(_slideX * offset), (int)Math.Round(_slideY * offset));
+                opacity, (int)Math.Round(_slideX * offset) + extraX, (int)Math.Round(_slideY * offset) + extraY);
         }
 
         if (_phase == Phase.Entering)

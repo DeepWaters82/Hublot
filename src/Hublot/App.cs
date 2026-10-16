@@ -207,7 +207,8 @@ internal sealed class App : IHost
         }
         if (_pinned is null)
         {
-            _pinned = new Popup(_settings);
+            _pinned = new Popup(_settings) { Draggable = true };
+            _pinned.Dropped += OnPinnedDropped;
             _pinned.Hidden += () =>
             {
                 if (_pinnedFading)
@@ -241,6 +242,39 @@ internal sealed class App : IHost
             _pinned.ShowPinned(card);
         }
         UpdateReserve();
+    }
+
+    /// <summary>
+    /// Mini-lecteur déplacé à la souris : emplacement et écran enregistrés comme s'ils avaient été choisis dans
+    /// les paramètres (écran principal, sinon cet écran précis), puis la carte s'y cale.
+    /// </summary>
+    private unsafe void OnPinnedDropped(PopupPosition position, nint monitor)
+    {
+        if (_pinned is null) return;
+        var info = new MONITORINFO { cbSize = (uint)sizeof(MONITORINFO) };
+        User32.GetMonitorInfoW(monitor, &info);
+        var (kind, device) = (PopupMonitor.Primary, "");
+        var (left, top) = (info.rcMonitor.Left, info.rcMonitor.Top);
+        if ((info.dwFlags & User32.MONITORINFOF_PRIMARY) == 0
+            && Displays.Active().FirstOrDefault(d => d.Left == left && d.Top == top) is { } display)
+            (kind, device) = (PopupMonitor.Specific, display.Path);
+
+        _settings.MediaPinnedPosition = position;
+        _settings.MediaPinnedMonitor = kind;
+        _settings.MediaPinnedMonitorDevice = device;
+        try
+        {
+            _settings.Save();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Enregistrement de l'emplacement du mini-lecteur", ex);
+        }
+        _pinned.PositionOverride = position;
+        _pinned.MonitorOverride = (kind, device);
+        _pinned.Settle();
+        UpdateReserve();
+        Log.Write($"Mini-lecteur déplacé : {position} ({(kind == PopupMonitor.Primary ? "écran principal" : device)})");
     }
 
     /// <summary>Plein écran (notification du shell) : la carte épinglée s'efface, puis revient.</summary>

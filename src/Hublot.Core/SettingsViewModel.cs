@@ -145,6 +145,24 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         });
     }
 
+    /// <summary>
+    /// Le mini-lecteur a pu être déplacé à la souris depuis l'ouverture des paramètres (le service enregistre
+    /// son emplacement) : relu à chaque activation de la fenêtre, pour ne pas l'écraser au prochain réglage.
+    /// </summary>
+    public void RefreshPinnedPlacement()
+    {
+        Settings disk;
+        try { disk = Settings.Load(); }
+        catch (Exception) { return; }
+        if (disk.MediaPinnedPosition == _s.MediaPinnedPosition && disk.MediaPinnedMonitor == _s.MediaPinnedMonitor
+            && disk.MediaPinnedMonitorDevice == _s.MediaPinnedMonitorDevice) return;
+        _s.MediaPinnedPosition = disk.MediaPinnedPosition;
+        _s.MediaPinnedMonitor = disk.MediaPinnedMonitor;
+        _s.MediaPinnedMonitorDevice = disk.MediaPinnedMonitorDevice;
+        OnPropertyChanged(nameof(MediaPinnedPositionIndex));
+        OnPropertyChanged(nameof(PinnedMonitorChoiceIndex));
+    }
+
     public List<string> PinnedMonitorChoices => [L.T("Display.Primary"), .. _displays.Select((d, i) => DisplayLabel(d, i))];
 
     public int PinnedMonitorChoiceIndex

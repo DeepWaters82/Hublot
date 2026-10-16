@@ -116,7 +116,9 @@ internal static class Msg
     public const uint WM_CONTEXTMENU = 0x007B;
     public const uint WM_TIMER = 0x0113;
     public const uint WM_MOUSEMOVE = 0x0200;
+    public const uint WM_LBUTTONDOWN = 0x0201;
     public const uint WM_LBUTTONUP = 0x0202;
+    public const uint WM_CAPTURECHANGED = 0x0215;
     public const uint WM_RBUTTONUP = 0x0205;
     public const uint WM_MOUSELEAVE = 0x02A3;
     public const uint WM_USER = 0x0400;

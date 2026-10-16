@@ -6,7 +6,11 @@ namespace Hublot.Shell;
 /// <summary>Emplacement calculé d'une carte : rectangle à l'écran et échelle de rendu.</summary>
 internal readonly record struct Placement(int X, int Y, int Width, int Height, float Scale);
 
-internal enum SurfaceInput { HoverStart, HoverEnd, Move, Click }
+/// <summary>
+/// Souris : <c>Press</c> / <c>Release</c> = bouton gauche (souris capturée entre les deux : le glissement continue
+/// hors de la fenêtre), <c>Click</c> = bouton droit, <c>Cancel</c> = capture perdue en cours d'appui.
+/// </summary>
+internal enum SurfaceInput { HoverStart, HoverEnd, Move, Press, Release, Click, Cancel }
 
 /// <summary>Dessine le contenu d'une carte (fond déjà en place) dans le rectangle <c>card</c>.</summary>
 internal delegate void CardDrawer(Canvas canvas, RectF card, Theme theme, float scale);
@@ -17,7 +21,7 @@ internal delegate void CardDrawer(Canvas canvas, RectF card, Theme theme, float 
 /// </summary>
 internal abstract unsafe class PopupSurface : NativeWindow
 {
-    private bool _hover;
+    private bool _hover, _pressed;
 
     public event Action<PopupSurface, SurfaceInput, int, int>? Input;
 
@@ -66,7 +70,23 @@ internal abstract unsafe class PopupSurface : NativeWindow
                 Input?.Invoke(this, SurfaceInput.HoverEnd, -1, -1);
                 return 0;
 
+            case Msg.WM_LBUTTONDOWN:
+                _pressed = true;
+                User32.SetCapture(Handle);
+                Input?.Invoke(this, SurfaceInput.Press, x, y);
+                return 0;
+
             case Msg.WM_LBUTTONUP:
+                _pressed = false; // avant ReleaseCapture, qui envoie WM_CAPTURECHANGED
+                User32.ReleaseCapture();
+                Input?.Invoke(this, SurfaceInput.Release, x, y);
+                return 0;
+
+            case Msg.WM_CAPTURECHANGED when _pressed:
+                _pressed = false;
+                Input?.Invoke(this, SurfaceInput.Cancel, -1, -1);
+                return 0;
+
             case Msg.WM_RBUTTONUP:
                 Input?.Invoke(this, SurfaceInput.Click, x, y);
                 return 0;

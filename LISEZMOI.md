@@ -55,6 +55,9 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
   une carte de lecture reste affichée à son propre emplacement (en bas à droite par défaut) tant qu'un
   titre est en cours ou en pause, effacée en fondu pendant un plein écran ; un clic dessus la ferme jusqu'au titre suivant,
   ou jusqu'au prochain appui sur son raccourci (option « Le clic masque jusqu'au raccourci »).
+  On le **déplace à la souris** : il suit le pointeur, y compris vers un autre écran, puis se cale sur
+  l'emplacement le plus proche (coins, haut ou bas au centre) ; l'emplacement et l'écran sont retenus,
+  comme s'ils avaient été choisis dans les paramètres.
   Un **raccourci clavier** (désactivé par défaut, Ctrl + Alt + P) le masque ou le réaffiche — y compris
   à la demande quand l'option permanente est désactivée.
 - **Progression cliquable** (avec la progression) : un clic sur la barre avance ou recule dans le titre,

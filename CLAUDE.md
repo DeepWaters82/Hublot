@@ -151,6 +151,15 @@ src/Hublot/
   réduite + `SetForegroundWindow` (permis : Hublot vient de recevoir le clic). Sinon, si l'AUMID est dans
   `shell:AppsFolder` et que ce n'est pas un navigateur : `explorer.exe shell:AppsFolder\<AUMID>`.
   Premier plan déjà à l'application (second clic ; la popup ne prend jamais le focus) → `SW_MINIMIZE`.
+- **Mini-lecteur déplaçable** (3.5.0) : `PopupSurface` capture la souris entre `WM_LBUTTONDOWN` et
+  `WM_LBUTTONUP` (`Press` / `Release` ; `Cancel` si la capture est perdue ; bouton droit = `Click`). `Popup`
+  (`Draggable`, carte épinglée seulement) : au-delà de 6 DIP la carte suit la souris (`_dragX/_dragY` ajoutés
+  au décalage de rendu, curseur lu par `GetCursorPos`) ; en deçà, c'est un clic. Lâchée : centre de la carte →
+  écran (`MonitorAt`) et emplacement (tiers de la zone de travail en largeur, moitié en hauteur) →
+  `Dropped` → `App.OnPinnedDropped` enregistre `MediaPinnedPosition` + écran (principal, sinon `Specific` =
+  `DisplayInfo` de même origine) dans settings.ini, puis `Popup.Settle` : nouvelle `Placement` (`Prepare`,
+  échelle de l'écran visé) et calage animé de 300 ms (decelerate) depuis le point de lâcher. Hublot Core relit
+  l'emplacement à chaque activation de sa fenêtre (`RefreshPinnedPlacement`) pour ne pas l'écraser.
 - **Clic = masqué jusqu'au raccourci** (`MediaPinnedClickUntilHotkey`, désactivé, 3.4.0, exige le
   raccourci) : `App`, événement `Hidden` du mini-lecteur fermé par un clic (`_pinnedWanted` non nul ;
   `Pin(null)` l'a déjà vidé) → `NowPlayingModule.HideUntilHotkey` (`_pinnedOverride = false`). Changement d'option → `Restyle` du mini-lecteur.

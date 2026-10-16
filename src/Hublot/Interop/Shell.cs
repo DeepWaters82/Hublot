@@ -80,6 +80,13 @@ internal static unsafe partial class User32
     public static partial uint GetWindowThreadProcessId(nint hwnd, uint* processId);
 
     public const int SW_MINIMIZE = 6, SW_RESTORE = 9;
+    public const uint MONITORINFOF_PRIMARY = 1;
+
+    [LibraryImport("user32.dll")]
+    public static partial nint SetCapture(nint hwnd);
+
+    [LibraryImport("user32.dll")]
+    public static partial int ReleaseCapture();
     public const uint GW_OWNER = 4;
     private const uint DWMWA_CLOAKED = 14;
 
