@@ -161,8 +161,20 @@ internal static class MediaApps
     {
         var window = User32.GetForegroundWindow();
         if (window == 0 || IsBrowser(appId)) return false;
-        if (string.Equals(ShellItems.WindowAppId(User32.GetAncestor(window, User32.GA_ROOT)), appId, StringComparison.OrdinalIgnoreCase)) return true;
-        if (appId.Contains("_crx_", StringComparison.OrdinalIgnoreCase)) return false;
+        return Owns(User32.GetAncestor(window, User32.GA_ROOT), appId);
+    }
+
+    /// <summary>
+    /// La fenêtre appartient-elle à l'application ? Même AppUserModelId déclaré, sinon même processus — sauf
+    /// application web installée : « brave.exe » est aussi le navigateur (et inversement, la fenêtre d'une
+    /// application web n'est pas celle du navigateur).
+    /// </summary>
+    private static unsafe bool Owns(nint window, string appId)
+    {
+        string? declared = ShellItems.WindowAppId(window);
+        if (string.Equals(declared, appId, StringComparison.OrdinalIgnoreCase)) return true;
+        if (appId.Contains("_crx_", StringComparison.OrdinalIgnoreCase)
+            || declared?.Contains("_crx_", StringComparison.OrdinalIgnoreCase) == true) return false;
         uint pid;
         User32.GetWindowThreadProcessId(window, &pid);
         string process;
@@ -178,5 +190,38 @@ internal static class MediaApps
         if (Known.TryGetValue(appId, out var known)) return process.Equals(known.Process, StringComparison.OrdinalIgnoreCase);
         string id = appId.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? appId[..^4] : appId;
         return id.Contains(process, StringComparison.OrdinalIgnoreCase) || process.Contains(id, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Ouvre l'application source (clic sur son icône, option) : sa fenêtre la plus récente passe au premier plan,
+    /// restaurée si elle est réduite. Sans fenêtre visible (réduite dans la zone de notification, application du
+    /// Store en veille), elle est lancée depuis le dossier « Applications » du shell, ce qui réactive l'instance
+    /// ouverte. Navigateur : sa fenêtre la plus récente (Windows ne dit pas quel onglet joue), jamais une
+    /// nouvelle fenêtre. Le clic vient d'être reçu par Hublot : Windows l'autorise à changer de premier plan.
+    /// </summary>
+    public static void Activate(string appId)
+    {
+        for (nint w = User32.FindWindowExW(0, 0, null, null); w != 0; w = User32.FindWindowExW(0, w, null, null))
+        {
+            if (User32.IsWindowVisible(w) == 0 || User32.GetWindow(w, User32.GW_OWNER) != 0 || User32.IsCloaked(w) || !Owns(w, appId)) continue;
+            if (User32.IsIconic(w) != 0) User32.ShowWindow(w, User32.SW_RESTORE);
+            User32.SetForegroundWindow(w);
+            Log.Write($"Application source ouverte : {DisplayName(appId)}");
+            return;
+        }
+        if (IsBrowser(appId) || !ShellItems.InAppsFolder(appId))
+        {
+            Log.Write($"Application source introuvable : {DisplayName(appId)}");
+            return;
+        }
+        try
+        {
+            System.Diagnostics.Process.Start("explorer.exe", @"shell:AppsFolder\" + appId)?.Dispose();
+            Log.Write($"Application source lancée : {DisplayName(appId)}");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Ouverture de l'application source", ex);
+        }
     }
 }

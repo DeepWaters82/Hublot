@@ -53,11 +53,14 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
 - Options : popup aussi à la reprise, aussi à la mise en pause ; **progression du titre** (temps écoulé,
   barre, durée — si l'application la communique) ; **mini-lecteur permanent** (désactivé par défaut) :
   une carte de lecture reste affichée à son propre emplacement (en bas à droite par défaut) tant qu'un
-  titre est en cours ou en pause, effacée en fondu pendant un plein écran ; un clic dessus la ferme jusqu'au titre suivant.
+  titre est en cours ou en pause, effacée en fondu pendant un plein écran ; un clic dessus la ferme jusqu'au titre suivant,
+  ou jusqu'au prochain appui sur son raccourci (option « Le clic masque jusqu'au raccourci »).
   Un **raccourci clavier** (désactivé par défaut, Ctrl + Alt + P) le masque ou le réaffiche — y compris
   à la demande quand l'option permanente est désactivée.
 - **Progression cliquable** (avec la progression) : un clic sur la barre avance ou recule dans le titre,
   si l'application l'accepte ; au survol, la barre s'épaissit et indique le temps visé.
+- **Icône de la source cliquable** (option) : un clic sur l'icône de l'application, en haut à droite de
+  la carte, ouvre l'application (sa fenêtre passe au premier plan ; pour un navigateur, sa dernière fenêtre).
 - **Couleurs de la pochette** (activé par défaut) : la carte prend une teinte tirée de la pochette, et le
   bouton lecture / pause et la progression sa couleur dominante, à la manière de Material You. Une pochette
   en noir et blanc garde les couleurs de Windows.

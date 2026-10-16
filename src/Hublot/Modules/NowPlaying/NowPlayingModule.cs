@@ -377,6 +377,16 @@ internal sealed class NowPlayingModule : Module
     }
 
     /// <summary>
+    /// Clic sur le mini-lecteur avec l'option « masquer jusqu'au raccourci » : il ne revient plus au titre
+    /// suivant, seulement au prochain appui sur son raccourci (ou au prochain changement de l'option permanente).
+    /// </summary>
+    public void HideUntilHotkey()
+    {
+        _pinnedOverride = false;
+        Log.Write("Mini-lecteur masqué jusqu'au raccourci (clic)");
+    }
+
+    /// <summary>
     /// Mini-lecteur : la session qui joue (de préférence la dernière lancée), sinon la dernière active
     /// en pause ; retiré quand plus rien n'est visible. Après une fermeture par clic, il ne revient qu'au
     /// prochain titre ou à la reprise (<paramref name="trigger"/>).
@@ -464,7 +474,8 @@ internal sealed class NowPlayingModule : Module
     private static bool Ticking(CardContent? card) => card is MediaCard { State: { Playing: true, Timeline: not null } };
 
     private MediaCard Card(MediaState state)
-        => new(state, Execute, Host.Settings.MediaSeekable ? Seek : null, progressRow: Host.Settings.MediaShowProgress);
+        => new(state, Execute, Host.Settings.MediaSeekable ? Seek : null, progressRow: Host.Settings.MediaShowProgress,
+            openApp: Host.Settings.MediaOpenAppOnClick ? s => MediaApps.Activate(s.AppId) : null);
 
     /// <summary>Clic sur la progression : position demandée à l'application (elle confirme par ses événements).</summary>
     private void Seek(MediaState state, TimeSpan position)

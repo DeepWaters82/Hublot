@@ -142,7 +142,17 @@ src/Hublot/
   normal), calculée paresseusement (`Cover.Seed`). `CoverColors.For(seed, dark)` → teinte de fond HSL
   (L 0,24 / 0,86, alpha 0,6, posée sur le matériau en retrait du contour) + accentuation (L 0,74 / 0,38) qui
   remplace `Theme.Accent` pour la carte (bouton, progression) ; piste de la progression = accentuation à 32 % (3.2.1). Fondu avec la pochette (`CoverMs`).
-  Planche : `--snapshot` → `couleurs-pochette.png`. Changement d'option → `Restyle` du mini-lecteur.
+  Planche : `--snapshot` → `couleurs-pochette.png`.
+- **Icône de la source cliquable** (`MediaOpenAppOnClick`, désactivé, 3.4.0) : partie 4 de `MediaCard`
+  (zone de 32 DIP autour de l'icône, survol = `SubtleFill`), la carte reste affichée.
+  `MediaApps.Activate` : fenêtres de premier niveau dans l'ordre Z (`FindWindowExW`), visibles, sans
+  propriétaire, non masquées par DWM (`DWMWA_CLOAKED`), qui appartiennent à l'application (`Owns` : même
+  AUMID déclaré, sinon même processus ; jamais entre application web `_crx_` et navigateur) → restaurée si
+  réduite + `SetForegroundWindow` (permis : Hublot vient de recevoir le clic). Sinon, si l'AUMID est dans
+  `shell:AppsFolder` et que ce n'est pas un navigateur : `explorer.exe shell:AppsFolder\<AUMID>`.
+- **Clic = masqué jusqu'au raccourci** (`MediaPinnedClickUntilHotkey`, désactivé, 3.4.0, exige le
+  raccourci) : `App`, événement `Hidden` du mini-lecteur fermé par un clic (`_pinnedWanted` non nul ;
+  `Pin(null)` l'a déjà vidé) → `NowPlayingModule.HideUntilHotkey` (`_pinnedOverride = false`). Changement d'option → `Restyle` du mini-lecteur.
 - **Raccourci du mini-lecteur** : second `RegisterHotKey` (`TrayIcon.PinnedHotkey`) →
   `NowPlayingModule.TogglePinned` ; `_pinnedOverride` prime sur l'option jusqu'au prochain changement de réglages.
 - **Bouton lecture / pause** : morphing (`MediaCard.DrawPlayPause(shape 0→1)`, 260 ms) — chaque moitié du

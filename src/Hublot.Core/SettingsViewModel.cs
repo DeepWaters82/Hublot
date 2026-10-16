@@ -234,6 +234,8 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public bool MediaSeekable { get => _s.MediaSeekable; set => Set(() => _s.MediaSeekable = value, preview: false); }
     public bool MediaShowProgress { get => _s.MediaShowProgress; set => Set(() => _s.MediaShowProgress = value, preview: false); }
     public bool MediaCoverColors { get => _s.MediaCoverColors; set => Set(() => _s.MediaCoverColors = value, preview: false); }
+    public bool MediaPinnedClickUntilHotkey { get => _s.MediaPinnedClickUntilHotkey; set => Set(() => _s.MediaPinnedClickUntilHotkey = value, preview: false); }
+    public bool MediaOpenAppOnClick { get => _s.MediaOpenAppOnClick; set => Set(() => _s.MediaOpenAppOnClick = value, preview: false); }
     public bool MediaMusicOnly { get => _s.MediaMusicOnly; set => Set(() => _s.MediaMusicOnly = value, preview: false); }
 
     public ObservableCollection<MediaAppItem> MediaApps { get; } = [];

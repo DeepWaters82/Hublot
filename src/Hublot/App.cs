@@ -216,8 +216,12 @@ internal sealed class App : IHost
                     UpdateReserve();
                     return;
                 }
-                // Fermée par un clic : plus demandée jusqu'au prochain titre (Reset, pour le plein écran, ne passe pas ici).
+                // Fermée par un clic : plus demandée jusqu'au prochain titre (Reset, pour le plein écran, ne passe pas ici),
+                // ou jusqu'au raccourci (option). Retrait par Pin(null) : déjà plus demandée, rien à faire.
+                bool clicked = _pinnedWanted is not null;
                 _pinnedWanted = null;
+                if (clicked && _settings is { MediaPinnedClickUntilHotkey: true, MediaPinnedHotkeyEnabled: true })
+                    Running.OfType<NowPlayingModule>().FirstOrDefault()?.HideUntilHotkey();
                 UpdateReserve();
                 _tray.ScheduleTrim(1500);
             };

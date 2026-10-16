@@ -14,7 +14,8 @@ namespace Hublot.Modules.NowPlaying;
 ///   │ 1:24  ━━━━━━━━━━━━━──────────────────  3:52 │   progression (option, si communiquée)
 ///   └───────────────────────────────────────────┘
 ///
-/// Parties cliquables : 0 = la carte (ferme), 1 = précédent, 2 = lecture / pause, 3 = suivant ;
+/// Parties cliquables : 0 = la carte (ferme), 1 = précédent, 2 = lecture / pause, 3 = suivant, 4 = icône de
+/// l'application source (option : l'ouvre) ;
 /// 1000 à 2000 = la progression (option), position visée en millièmes de la durée.
 /// Les boutons ne ferment pas la carte ; ceux que l'application n'autorise pas sont grisés.
 ///
@@ -24,7 +25,7 @@ namespace Hublot.Modules.NowPlaying;
 /// appui sur un bouton → léger enfoncement et éclat.
 /// </summary>
 internal sealed class MediaCard(MediaState state, Action<MediaState, MediaCommand> command,
-    Action<MediaState, TimeSpan>? seek = null, bool progressRow = false) : CardContent
+    Action<MediaState, TimeSpan>? seek = null, bool progressRow = false, Action<MediaState>? openApp = null) : CardContent
 {
     private const float CoverSize = 76, ButtonHeight = 38, ButtonTop = 54;
     /// <summary>
@@ -35,7 +36,10 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
     private const float SideButton = 34, PlayButton = 38, ButtonGap = 6, GlyphInk = 14, Margin = 16;
     /// <summary>Rangée de progression : barre entre le temps écoulé et la durée.</summary>
     private const float RowTop = 98, RowHeight = 16, BarInset = 60;
-    private const int SeekPart = 1000;
+    private const int SeekPart = 1000, AppPart = 4;
+    /// <summary>Icône de l'application (20 DIP en haut à droite) et sa zone cliquable, un peu plus large.</summary>
+    private RectF AppIcon => new(Width - Margin - 20, 14, 20, 20);
+    private RectF AppIconHit => new(Width - Margin - 26, 8, 32, 32);
     /// <summary>Durées : morphing lecture ↔ pause, changement de titre, fondu de pochette, appui.</summary>
     private const double MorphMs = 260, TextMs = 420, CoverMs = 340, PressMs = 320;
 
@@ -115,6 +119,9 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
         };
     }
 
+    /// <summary>Icône de l'application cliquable : option, et icône connue (affichée).</summary>
+    private bool AppClickable => openApp is not null && State.AppIcon is not null;
+
     /// <summary>Progression cliquable : option, et application qui accepte un changement de position.</summary>
     private bool Seekable => seek is not null && State.CanSeek && State.Timeline is not null;
 
@@ -131,6 +138,8 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
             var b = Button(part);
             if (x >= b.X && x < b.Right && y >= b.Y && y < b.Bottom) return part;
         }
+        var icon = AppIconHit;
+        if (AppClickable && x >= icon.X && x < icon.Right && y >= icon.Y && y < icon.Bottom) return AppPart;
         return 0;
     }
 
@@ -142,6 +151,12 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
             seek!(State, target);
             // Retour immédiat : la barre saute à la position visée, l'application confirme ensuite.
             State = State with { Timeline = timeline with { Position = target, UpdatedUtc = DateTime.UtcNow } };
+            return false;
+        }
+        if (part == AppPart && AppClickable)
+        {
+            // La carte reste affichée (le mini-lecteur ne doit pas se fermer) ; la popup se fermera seule.
+            openApp!(State);
             return false;
         }
         MediaCommand? cmd = part switch { 1 => MediaCommand.Previous, 2 => MediaCommand.TogglePlayPause, 3 => MediaCommand.Next, _ => null };
@@ -224,7 +239,8 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
         float x = cover.Right + ctx.S(12), right = card.Right - ctx.S(16);
         if (p.AppIcon is { } appIcon)
         {
-            var icon = Abs(new RectF(Width - 16 - 20, 14, 20, 20));
+            var icon = Abs(AppIcon);
+            if (ctx.Hover == AppPart && AppClickable) c.FillRoundRect(Abs(AppIconHit), ctx.S(6), t.SubtleFill);
             c.DrawImage(appIcon.Pixels, appIcon.Size, appIcon.Size, icon, ctx.S(2));
             right = icon.X - ctx.S(10);
         }

@@ -608,6 +608,10 @@
                                 <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaPinnedHotkeyEnabled}" />
                             </StackPanel>
                         </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xED1A;" Header="{local:Tr LeClicMasqueJusquAuRaccourci}"
+                                            Description="{local:Tr SinonLeMiniLecteurRevient}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaPinnedClickUntilHotkey}" IsEnabled="{Binding MediaPinnedHotkeyEnabled}" />
+                        </local:SettingsCard>
                         <local:SettingsCard Icon="&#xE916;" Header="{local:Tr ProgressionDuTitre}"
                                             Description="{local:Tr BarreDeProgressionEtDuree}">
                             <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaShowProgress}" />
@@ -619,6 +623,10 @@
                         <local:SettingsCard Icon="&#xE790;" Header="{local:Tr CouleursDeLaPochette}"
                                             Description="{local:Tr TeinteLaCarteSelonLaPochette}">
                             <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaCoverColors}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE8A7;" Header="{local:Tr IconeDeLaSourceCliquable}"
+                                            Description="{local:Tr UnClicSurLIconeOuvre}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding MediaOpenAppOnClick}" />
                         </local:SettingsCard>
 
                         <TextBlock Text="{local:Tr Applications}" Style="{StaticResource SectionHeader}" />

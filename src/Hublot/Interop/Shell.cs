@@ -78,4 +78,31 @@ internal static unsafe partial class User32
 {
     [LibraryImport("user32.dll")]
     public static partial uint GetWindowThreadProcessId(nint hwnd, uint* processId);
+
+    public const int SW_RESTORE = 9;
+    public const uint GW_OWNER = 4;
+    private const uint DWMWA_CLOAKED = 14;
+
+    /// <summary>Fenêtres de premier niveau, dans l'ordre Z (la plus récente d'abord) : <c>FindWindowExW(0, précédente, null, null)</c>.</summary>
+    [LibraryImport("user32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    public static partial nint FindWindowExW(nint parent, nint after, string? className, string? title);
+
+    [LibraryImport("user32.dll")]
+    public static partial int IsWindowVisible(nint hwnd);
+
+    [LibraryImport("user32.dll")]
+    public static partial int IsIconic(nint hwnd);
+
+    [LibraryImport("user32.dll")]
+    public static partial nint GetWindow(nint hwnd, uint command);
+
+    [LibraryImport("dwmapi.dll")]
+    private static partial int DwmGetWindowAttribute(nint hwnd, uint attribute, void* value, uint size);
+
+    /// <summary>Fenêtre masquée par le compositeur (autre bureau virtuel, application du Store en veille).</summary>
+    public static bool IsCloaked(nint hwnd)
+    {
+        int cloaked = 0;
+        return DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, &cloaked, sizeof(int)) == 0 && cloaked != 0;
+    }
 }

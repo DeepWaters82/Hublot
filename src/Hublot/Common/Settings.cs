@@ -157,6 +157,10 @@ public sealed class Settings
     public bool MediaSeekable { get; set; } = true;
     /// <summary>Couleurs de la pochette : teinte de fond et accentuation de la carte (façon Material You).</summary>
     public bool MediaCoverColors { get; set; } = true;
+    /// <summary>Clic sur le mini-lecteur : masqué jusqu'au prochain appui sur son raccourci (sinon jusqu'au titre suivant).</summary>
+    public bool MediaPinnedClickUntilHotkey { get; set; }
+    /// <summary>Clic sur l'icône de l'application source : l'ouvre (premier plan).</summary>
+    public bool MediaOpenAppOnClick { get; set; }
     /// <summary>Raccourci qui masque / réaffiche le mini-lecteur (0x50 = P, comme « player »).</summary>
     public bool MediaPinnedHotkeyEnabled { get; set; } = true;
     public int MediaPinnedHotkeyModifiers { get; set; } = ModControl | ModAlt;
@@ -324,6 +328,8 @@ public sealed class Settings
         Add(nameof(MediaShowProgress), MediaShowProgress);
         Add(nameof(MediaSeekable), MediaSeekable);
         Add(nameof(MediaCoverColors), MediaCoverColors);
+        Add(nameof(MediaPinnedClickUntilHotkey), MediaPinnedClickUntilHotkey);
+        Add(nameof(MediaOpenAppOnClick), MediaOpenAppOnClick);
         Add(nameof(MediaPinnedHotkeyEnabled), MediaPinnedHotkeyEnabled);
         Add(nameof(MediaPinnedHotkeyModifiers), MediaPinnedHotkeyModifiers);
         Add(nameof(MediaPinnedHotkeyKey), MediaPinnedHotkeyKey);
@@ -408,6 +414,8 @@ public sealed class Settings
             case nameof(MediaShowProgress): MediaShowProgress = ParseBool(value, MediaShowProgress); break;
             case nameof(MediaSeekable): MediaSeekable = ParseBool(value, MediaSeekable); break;
             case nameof(MediaCoverColors): MediaCoverColors = ParseBool(value, MediaCoverColors); break;
+            case nameof(MediaPinnedClickUntilHotkey): MediaPinnedClickUntilHotkey = ParseBool(value, MediaPinnedClickUntilHotkey); break;
+            case nameof(MediaOpenAppOnClick): MediaOpenAppOnClick = ParseBool(value, MediaOpenAppOnClick); break;
             case nameof(MediaPinnedHotkeyEnabled): MediaPinnedHotkeyEnabled = ParseBool(value, MediaPinnedHotkeyEnabled); break;
             case nameof(MediaPinnedHotkeyModifiers): MediaPinnedHotkeyModifiers = ParseInt(value, MediaPinnedHotkeyModifiers, 0, 15); break;
             case nameof(MediaPinnedHotkeyKey): MediaPinnedHotkeyKey = ParseInt(value, MediaPinnedHotkeyKey, 0, 255); break;

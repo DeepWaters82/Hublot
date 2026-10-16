@@ -34,6 +34,16 @@ internal static unsafe partial class ShellItems
     [LibraryImport("gdi32.dll")]
     private static partial int GetDIBits(nint hdc, nint bitmap, uint start, uint lines, void* bits, BITMAPINFOHEADER* info, uint usage);
 
+    /// <summary>L'application figure-t-elle dans le dossier « Applications » du shell (lançable par son AppUserModelId) ?</summary>
+    public static bool InAppsFolder(string appId)
+    {
+        nint item;
+        var iid = IID_IShellItem;
+        if (SHCreateItemFromParsingName(@"shell:AppsFolder\" + appId, 0, &iid, &item) != 0 || item == 0) return false;
+        Release(item);
+        return true;
+    }
+
     /// <summary>Nom affiché et icône (BGRA prémultiplié, carré de <paramref name="iconSize"/> px), ou null.</summary>
     public static (string? Name, byte[]? Icon) Describe(string appId, int iconSize)
     {
