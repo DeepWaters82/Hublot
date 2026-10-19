@@ -281,14 +281,21 @@ src/Hublot/
   `TrayIcon.ShowContextMenu`, fermeture automatique suspendue pendant le menu.
 - **Désinstallation** : `UninstallDialog` (case « Conserver mes paramètres », cochée) → `Installer.Uninstall(keepSettings)`.
 - **Hublot Core** : tuiles des modules et logo en `AccentFillColorDefaultBrush` / `TextOnAccentFillColorPrimaryBrush`
-  (suivent l'accentuation et le thème), logo aussi en icône de fenêtre.
+  (suivent l'accentuation et le thème), logo aussi en icône de fenêtre. Barre de titre : avec « couleur
+  d'accentuation sur les barres de titre » (DWM `ColorPrevalence`), le thème Fluent de WPF fixe sa couleur à
+  l'ouverture et ne la change plus ; `Native.ApplyCaptionColor` (DWMWA_CAPTION_COLOR / TEXT_COLOR = DWM
+  `AccentColor`, texte noir ou blanc selon la luminance, sinon couleurs par défaut) au chargement et à chaque
+  `WM_SETTINGCHANGE` / `WM_DWMCOLORIZATIONCOLORCHANGED`.
+- **Icône de la zone de notification** : `TrayIconRenderer.TrayColors` = AccentPalette (Light1 → Accent sur barre
+  des tâches sombre, Accent → Dark1 sur barre claire), traits blancs ou sombres selon la luminance ; redessinée
+  à chaque `ImmersiveColorSet`. Exécutables et logos du Store : bleu Windows (`Draw(size)`).
 - **Défauts** de « Lecture en cours » : tout activé sauf « aussi à la mise en pause » ; raccourci du lecteur
   permanent Ctrl + 0 du pavé numérique (0x60 ; le 0 du haut est le zoom 100 % des navigateurs).
 - **Page GitHub** : `HublotCore.exe --screenshot PAGE FICHIER en` (fenêtre hors écran, réglages par défaut,
   applications d'exemple, rien n'est enregistré : `SettingsViewModel.Demo`) → `now-playing-settings.png` ;
   `Hublot.exe --snapshot DOSSIER 1.5 en` → `sombre-12.png` = `audio-jack.png` (et `album-colors.png`, planche
   de contrôle Windows / pochette). Section « Album art colors » du README : captures réelles du lecteur
-  fournies par l'utilisateur (`album-colors-1.png` à `-5.png`).
+  fournies par l'utilisateur (`album-colors-1.png` à `-6.png`).
 
 ## Langues (français / anglais)
 
@@ -359,8 +366,11 @@ src/Hublot/
 - Glyphes batterie : Battery10 = U+E83F (U+E85A est BatteryCharging0).
 - Les fichiers de `Common/` sont compilés dans les deux projets : aucune dépendance au reste du service.
 - Scripts `.ps1` en UTF-8 **avec BOM**.
-- Logo (`TrayIconRenderer`, `HublotLogo` dans App.xaml de Hublot Core, `app.ico`) : hublot + croisée,
-  **sans** le logo Windows (marque de Microsoft). Les trois doivent rester identiques. Le nom
+- Logo (`TrayIconRenderer`, `HublotLogo` dans App.xaml de Hublot Core, `app.ico`) : hublot à huit rivets,
+  cerclage, la mer (vague) dans la moitié basse de la vitre et un reflet (3.7.1, choisi parmi des concepts ;
+  avant : une croisée) ; sous 24 px, ni rivets ni reflet. **Sans** le logo Windows (marque de Microsoft).
+  Les trois doivent rester identiques (grille de 24 : vitre 7,6, cerclage 1,4, rivets à 9,95, mer à +1,6).
+  `app.ico` : `Hublot.exe --write-ico src\Hublot\app.ico` ; planche : `Hublot.exe --icons FICHIER.png`. Le nom
   « Hublot » est une marque d'horloger : à revoir avant toute diffusion publique.
 - Icônes Segoe dans les tuiles : `Canvas.DrawIcon` (centrage sur le dessin du glyphe, pas sur son cadratin).
 - Logitech et manettes Xbox : toujours **non testés sur matériel**.

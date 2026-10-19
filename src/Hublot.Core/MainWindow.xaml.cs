@@ -40,6 +40,18 @@ public partial class MainWindow : Window
         Loaded += (_, _) => MovePill(animate: false);
         Nav.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler((_, _) => MovePill(animate: false)));
         DataContext = _vm;
+        // Barre de titre : suit la couleur d'accentuation, et ses changements (après le traitement de WPF).
+        SourceInitialized += (_, _) =>
+        {
+            var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+            System.Windows.Interop.HwndSource.FromHwnd(hwnd)?.AddHook((nint h, int msg, nint w, nint l, ref bool handled) =>
+            {
+                // WM_SETTINGCHANGE, WM_DWMCOLORIZATIONCOLORCHANGED
+                if (msg is 0x001A or 0x0320) Dispatcher.BeginInvoke(() => Native.ApplyCaptionColor(h), DispatcherPriority.Background);
+                return 0;
+            });
+            Dispatcher.BeginInvoke(() => Native.ApplyCaptionColor(hwnd), DispatcherPriority.Loaded);
+        };
         _vm.LanguageChanged += () => Dispatcher.BeginInvoke(() => ((App)Application.Current).Restart("General"));
         _pages = new()
         {

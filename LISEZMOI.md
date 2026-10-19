@@ -24,7 +24,7 @@ Depuis les sources : `.\build.ps1` (SDK .NET 10) → `dist\Hublot-Setup.exe`, co
 
 ## Utilisation
 
-L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans la zone de notification :
+L'icône de Hublot (un hublot à rivets, la mer derrière la vitre, aux couleurs d'accentuation de Windows) vit dans la zone de notification :
 
 - **survol** (un court instant, un simple passage de souris n'ouvre rien) : une carte au-dessus de
   l'icône réunit la lecture en cours (avec lecture / pause et suivant) et les appareils connectés avec

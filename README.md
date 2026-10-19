@@ -46,6 +46,7 @@ accent color.
   <img src="docs/screenshots/album-colors-3.png" width="400" alt="Player tinted by a red album cover">
   <img src="docs/screenshots/album-colors-4.png" width="400" alt="Player tinted by a blue album cover">
   <img src="docs/screenshots/album-colors-5.png" width="400" alt="Player tinted by an orange album cover">
+  <img src="docs/screenshots/album-colors-6.png" width="400" alt="Player tinted by a green album cover">
 </p>
 
 ## Everything is configurable

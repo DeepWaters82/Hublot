@@ -243,7 +243,7 @@
             <GradientStop Color="#0067C0" Offset="1" />
         </LinearGradientBrush>
 
-        <!-- Logo de Hublot : un hublot et sa croisée (même dessin que l'icône du service), aux couleurs
+        <!-- Logo de Hublot : un hublot à rivets, la mer derrière la vitre (même dessin que l'icône du service), aux couleurs
              d'accentuation du thème : accentuation claire et traits sombres en mode sombre, l'inverse en mode clair. -->
         <DrawingImage x:Key="HublotLogo">
             <DrawingImage.Drawing>
@@ -253,22 +253,41 @@
                             <EllipseGeometry Center="12,12" RadiusX="11.6" RadiusY="11.6" />
                         </GeometryDrawing.Geometry>
                     </GeometryDrawing>
-                    <!-- Croisée puis cerclage (même dessin que TrayIconRenderer) -->
-                    <GeometryDrawing Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}" Geometry="M11.27,3.5 h1.46 v17 h-1.46 Z M3.5,11.27 h17 v1.46 h-17 Z" />
+                    <!-- Mer, cerclage, rivets, reflet (même dessin que TrayIconRenderer, grille de 24) -->
+                    <DrawingGroup Opacity="0.33">
+                        <GeometryDrawing Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                                         Geometry="M5.144,13.6 Q6.858,12.5 8.572,13.6 T12,13.6 T15.428,13.6 T18.856,13.6 A7.04,7.04 0 0 1 5.144,13.6 Z" />
+                    </DrawingGroup>
                     <DrawingGroup Opacity="0.9">
                         <GeometryDrawing>
                             <GeometryDrawing.Pen>
-                                <Pen Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}" Thickness="1.55" />
+                                <Pen Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}" Thickness="1.4" />
                             </GeometryDrawing.Pen>
                             <GeometryDrawing.Geometry>
-                                <EllipseGeometry Center="12,12" RadiusX="8.5" RadiusY="8.5" />
+                                <EllipseGeometry Center="12,12" RadiusX="7.6" RadiusY="7.6" />
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingGroup>
+                    <DrawingGroup Opacity="0.8">
+                        <GeometryDrawing Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}">
+                            <GeometryDrawing.Geometry>
+                                <GeometryGroup>
+                                    <EllipseGeometry Center="12,2.05" RadiusX="0.75" RadiusY="0.75" />
+                                    <EllipseGeometry Center="19.04,4.96" RadiusX="0.75" RadiusY="0.75" />
+                                    <EllipseGeometry Center="21.95,12" RadiusX="0.75" RadiusY="0.75" />
+                                    <EllipseGeometry Center="19.04,19.04" RadiusX="0.75" RadiusY="0.75" />
+                                    <EllipseGeometry Center="12,21.95" RadiusX="0.75" RadiusY="0.75" />
+                                    <EllipseGeometry Center="4.96,19.04" RadiusX="0.75" RadiusY="0.75" />
+                                    <EllipseGeometry Center="2.05,12" RadiusX="0.75" RadiusY="0.75" />
+                                    <EllipseGeometry Center="4.96,4.96" RadiusX="0.75" RadiusY="0.75" />
+                                </GeometryGroup>
                             </GeometryDrawing.Geometry>
                         </GeometryDrawing>
                     </DrawingGroup>
                     <DrawingGroup Opacity="0.55">
-                        <GeometryDrawing Geometry="M6.89,10.73 A5.27,5.27 0 0 1 10.02,7.11">
+                        <GeometryDrawing Geometry="M7.85,10.96 A4.28,4.28 0 0 1 10.40,8.03">
                             <GeometryDrawing.Pen>
-                                <Pen Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}" Thickness="1.06" StartLineCap="Round" EndLineCap="Round" />
+                                <Pen Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}" Thickness="1" StartLineCap="Round" EndLineCap="Round" />
                             </GeometryDrawing.Pen>
                         </GeometryDrawing>
                     </DrawingGroup>

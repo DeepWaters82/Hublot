@@ -148,7 +148,9 @@ internal sealed unsafe class TrayIcon : NativeWindow
         uint dpi = User32.GetDpiForSystem();
         int size = User32.GetSystemMetricsForDpi(User32.SM_CXSMICON, dpi);
         nint old = _icon;
-        using (var canvas = TrayIconRenderer.Draw(size))
+        // Couleur d'accentuation, adaptée à la barre des tâches claire ou sombre (redessinée à chaque changement).
+        var (top, bottom, ink) = TrayIconRenderer.TrayColors(Theme.SystemUsesLightTheme());
+        using (var canvas = TrayIconRenderer.Draw(size, top, bottom, ink))
             _icon = canvas.ToIcon();
         if (old != 0) User32.DestroyIcon(old);
     }

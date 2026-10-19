@@ -3,40 +3,80 @@ using Hublot.Interop;
 namespace Hublot.Shell;
 
 /// <summary>
-/// Logo de Hublot : un hublot — disque bleu Windows, cerclage clair — dont la vitre est partagée en
-/// quatre par une croisée, clin d'œil à la fenêtre de Windows sans reprendre son logo. Dessiné en vectoriel à la taille exacte demandée (net à tout DPI) ; la même image
-/// sert à la zone de notification et aux exécutables (app.ico).
+/// Logo de Hublot : un hublot de navire — disque bleu Windows, huit rivets, cerclage clair — et derrière la
+/// vitre, la mer (une vague dans la moitié basse) et un reflet. Dessiné en vectoriel à la taille exacte
+/// demandée (net à tout DPI) ; en dessous de 24 px, sans rivets ni reflet (vitre plus grande, lisible). La même
+/// image sert à la zone de notification (couleur d'accentuation) et aux exécutables (app.ico, bleu).
 /// </summary>
 internal static class TrayIconRenderer
 {
     // Bleu du logo Windows 11 (#0078D4), en léger dégradé vertical.
     private const uint BlueTop = 0xFF1A8CE6, BlueBottom = 0xFF0067C0;
 
-    public static Canvas Draw(int size)
+    /// <summary>
+    /// Couleurs du logo pour la zone de notification : la couleur d'accentuation de Windows, plus claire sur une barre
+    /// des tâches sombre (comme les icônes du système), et des traits blancs ou sombres selon le contraste.
+    /// </summary>
+    public static (uint Top, uint Bottom, uint Ink) TrayColors(bool lightTaskbar)
+    {
+        // AccentPalette : 1 = Light2, 2 = Light1, 3 = Accent, 4 = Dark1.
+        uint? top = Theme.ReadAccent(lightTaskbar ? 3 : 2), bottom = Theme.ReadAccent(lightTaskbar ? 4 : 3);
+        if (top is not uint t || bottom is not uint b) return (BlueTop, BlueBottom, 0xFFFFFFFF);
+        float Luminance(uint c) => (0.2126f * (c >> 16 & 0xFF) + 0.7152f * (c >> 8 & 0xFF) + 0.0722f * (c & 0xFF)) / 255f;
+        return (t, b, (Luminance(t) + Luminance(b)) / 2 > 0.6f ? 0xFF1C1C1C : 0xFFFFFFFF);
+    }
+
+    public static Canvas Draw(int size) => Draw(size, BlueTop, BlueBottom, 0xFFFFFFFF);
+
+    /// <summary>Logo aux couleurs données (disque en dégradé, traits <paramref name="ink"/>).</summary>
+    public static Canvas Draw(int size, uint top, uint bottom, uint ink)
     {
         var c = new Canvas(size, size);
         c.Clear();
         float inset = Math.Max(0.5f, size / 32f);
         var disc = new RectF(inset, inset, size - 2 * inset, size - 2 * inset);
-        c.FillSquircle(disc, 2f, BlueTop, BlueBottom); // exposant 2 : un cercle
+        c.FillSquircle(disc, 2f, top, bottom); // exposant 2 : un cercle
         float unit = disc.Width / 24f;
+        uint Ink(uint alpha) => alpha << 24 | (ink & 0x00FFFFFF);
 
-        // Cerclage du hublot : anneau clair à l'intérieur du disque.
-        float ringWidth = Math.Max(1f, 1.6f * unit);
-        var ring = disc.Inflate(-2.4f * unit);
-        c.StrokeRoundRect(ring, disc.Width, 0xE6FFFFFF, ringWidth);
-
-        // Croisée : deux barres qui rejoignent le cerclage (une fenêtre, pas un viseur).
+        bool detailed = size >= 24;
         float cx = disc.X + disc.Width / 2, cy = disc.Y + disc.Height / 2;
-        float reach = ring.Width / 2 - ringWidth / 2, bar = Math.Max(1f, 1.5f * unit);
-        if (size <= 20) bar = 1f; // trait d'un pixel exact : net à 16 et 20 px
-        // (rayon non nul : un rectangle arrondi de rayon 0 ne dessine rien ; les bouts disparaissent sous le cerclage)
-        c.FillRoundRect(new RectF(cx - bar / 2, cy - reach, bar, 2 * reach), bar / 2, 0xFFFFFFFF);
-        c.FillRoundRect(new RectF(cx - reach, cy - bar / 2, 2 * reach, bar), bar / 2, 0xFFFFFFFF);
+        float ringWidth = Math.Max(1f, 1.4f * unit);
+        // Vitre (grille de 24) : rayon 7,6, ou 8,6 en petit, sans rivets autour.
+        float glass = (detailed ? 7.6f : 8.6f) * unit;
 
-        // Reflet sur la vitre, en haut à gauche ; illisible et inutile aux petites tailles.
-        if (size >= 24)
+        // Mer : une vague (deux ondulations) sous le centre, puis l'arc du bas de la vitre, sous le cerclage.
+        float water = glass - ringWidth * 0.4f, line = 1.6f * unit, half = MathF.Sqrt(water * water - line * line);
+        float amplitude = 0.55f * unit, from = MathF.Atan2(line, half);
+        Span<PointF> sea = stackalloc PointF[2 * 17];
+        for (int i = 0; i <= 16; i++)
         {
+            float t = i / 16f;
+            sea[i] = new PointF(cx - half + 2 * half * t, cy + line - amplitude * MathF.Sin(t * 4 * MathF.PI));
+        }
+        for (int i = 1; i <= 17; i++)
+        {
+            float a = from + (MathF.PI - 2 * from) * i / 17f; // de la droite à la gauche, par le bas
+            sea[16 + i] = new PointF(cx + water * MathF.Cos(a), cy + water * MathF.Sin(a));
+        }
+        c.FillPolygon(sea[..33], Ink(0x55), 0);
+
+        // Cerclage de la vitre.
+        var ring = new RectF(cx - glass, cy - glass, 2 * glass, 2 * glass);
+        c.StrokeRoundRect(ring, ring.Width, Ink(0xE6), ringWidth);
+        float reach = glass - ringWidth / 2;
+
+        if (detailed)
+        {
+            // Huit rivets, à mi-chemin entre le cerclage et le bord du disque.
+            float orbit = (glass + ringWidth / 2 + disc.Width / 2) / 2, d = Math.Max(1.5f, 1.5f * unit);
+            for (int k = 0; k < 8; k++)
+            {
+                float a = k * MathF.PI / 4;
+                c.FillEllipse(new RectF(cx + orbit * MathF.Cos(a) - d / 2, cy + orbit * MathF.Sin(a) - d / 2, d, d), Ink(0xCC));
+            }
+
+            // Reflet sur la vitre, en haut à gauche.
             Span<PointF> glint = stackalloc PointF[9];
             float r = reach * 0.62f;
             for (int i = 0; i < glint.Length; i++)
@@ -44,7 +84,7 @@ internal static class TrayIconRenderer
                 double a = Math.PI * (1.08 + 0.30 * i / (glint.Length - 1)); // de 194° à 248°
                 glint[i] = new PointF(cx + r * (float)Math.Cos(a), cy + r * (float)Math.Sin(a));
             }
-            c.StrokePolyline(glint, Math.Max(1f, 1.1f * unit), 0x8CFFFFFF);
+            c.StrokePolyline(glint, Math.Max(1f, 1.1f * unit), Ink(0x8C));
         }
         c.Flush();
         return c;

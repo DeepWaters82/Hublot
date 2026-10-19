@@ -83,7 +83,7 @@ internal sealed record Theme(
     /// <summary>
     /// AccentPalette : 8 couleurs RGBA (Light3, Light2, Light1, Accent, Dark1, Dark2, Dark3, —).
     /// </summary>
-    private static uint? ReadAccent(int index)
+    internal static uint? ReadAccent(int index)
     {
         if (Registry.GetValue(AccentKey, "AccentPalette", null) is not byte[] p || p.Length < 32) return null;
         int i = index * 4;

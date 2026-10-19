@@ -201,4 +201,31 @@ internal static class Native
 
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(nint hwnd, int cmd);
+
+    private const int DWMWA_CAPTION_COLOR = 35, DWMWA_TEXT_COLOR = 36;
+    private const uint DWMWA_COLOR_DEFAULT = 0xFFFFFFFF;
+    private const string DwmKey = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\DWM";
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(nint hwnd, int attribute, ref uint value, int size);
+
+    /// <summary>
+    /// Barre de titre à la couleur d'accentuation actuelle si Windows l'affiche sur les barres de titre (DWM
+    /// ColorPrevalence), texte blanc ou noir selon le contraste ; sinon couleurs par défaut du thème. Le thème
+    /// Fluent de WPF fixe cette couleur à l'ouverture et ne la change plus quand l'accentuation change.
+    /// </summary>
+    public static void ApplyCaptionColor(nint hwnd)
+    {
+        if (hwnd == 0) return;
+        uint caption = DWMWA_COLOR_DEFAULT, text = DWMWA_COLOR_DEFAULT;
+        if (Microsoft.Win32.Registry.GetValue(DwmKey, "ColorPrevalence", 0) is int on && on == 1
+            && Microsoft.Win32.Registry.GetValue(DwmKey, "AccentColor", null) is int abgr)
+        {
+            caption = (uint)abgr & 0x00FFFFFF; // AccentColor = 0xAABBGGRR, COLORREF = 0x00BBGGRR
+            double luminance = (0.2126 * (caption & 0xFF) + 0.7152 * (caption >> 8 & 0xFF) + 0.0722 * (caption >> 16 & 0xFF)) / 255;
+            text = luminance > 0.6 ? 0x00000000u : 0x00FFFFFFu;
+        }
+        DwmSetWindowAttribute(hwnd, DWMWA_CAPTION_COLOR, ref caption, sizeof(uint));
+        DwmSetWindowAttribute(hwnd, DWMWA_TEXT_COLOR, ref text, sizeof(uint));
+    }
 }

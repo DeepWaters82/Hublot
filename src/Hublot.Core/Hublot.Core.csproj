@@ -14,7 +14,7 @@
     <Product>Hublot</Product>
     <Company>Hublot</Company>
     <AssemblyTitle>Hublot (paramètres et installation)</AssemblyTitle>
-    <Version>3.7.0</Version>
+    <Version>3.7.1</Version>
     <ApplicationIcon>..\Hublot\app.ico</ApplicationIcon>
     <ApplicationManifest>..\Hublot\app.manifest</ApplicationManifest>
     <SatelliteResourceLanguages>fr</SatelliteResourceLanguages>
