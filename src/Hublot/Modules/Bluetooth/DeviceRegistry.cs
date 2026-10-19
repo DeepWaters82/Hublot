@@ -52,6 +52,43 @@ internal sealed class DeviceRegistry
         return false;
     }
 
+    private static bool IsBluetooth(string key) => key.StartsWith("bt:", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Appareil Bluetooth appairé de nouveau (supprimé puis remis dans Windows) : il change de conteneur, donc de
+    /// clé. L'entrée de l'ancien appairage — même nom, plus appairée — devient la sienne (type, première
+    /// apparition conservés) au lieu de rester en double. Renvoie l'ancienne clé (sourdine à reporter), ou null.
+    /// </summary>
+    public string? Supersede(DeviceState s, ISet<string> paired)
+    {
+        if (!IsBluetooth(s.Key) || _devices.ContainsKey(s.Key)) return null;
+        var stale = _devices.Values.FirstOrDefault(d => IsBluetooth(d.Key) && !paired.Contains(d.Key)
+            && string.Equals(d.Name, s.Name, StringComparison.OrdinalIgnoreCase));
+        if (stale is null) return null;
+        _devices.Remove(stale.Key);
+        _devices[s.Key] = stale with { Key = s.Key, Connected = s.Connected, LastSeen = DateTime.Now };
+        _dirty = true;
+        return stale.Key;
+    }
+
+    /// <summary>
+    /// Doublons déjà enregistrés : entrées Bluetooth plus appairées dont le nom est celui d'un appareil appairé.
+    /// Renvoie (ancienne clé, clé actuelle) pour reporter la sourdine.
+    /// </summary>
+    public List<(string Old, string Current)> PruneStale(IReadOnlyCollection<DeviceState> paired)
+    {
+        var keys = paired.Select(p => p.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var byName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var p in paired.Where(p => IsBluetooth(p.Key))) byName.TryAdd(p.Name, p.Key);
+        var stale = _devices.Values
+            .Where(d => IsBluetooth(d.Key) && !keys.Contains(d.Key) && byName.ContainsKey(d.Name))
+            .Select(d => (d.Key, byName[d.Name]))
+            .ToList();
+        foreach (var (old, _) in stale) _devices.Remove(old);
+        if (stale.Count > 0) _dirty = true;
+        return stale;
+    }
+
     /// <summary>Derniers appareils vus, déconnectés, hors clés et noms exclus (déjà affichés).</summary>
     public IEnumerable<DeviceState> RecentlyDisconnected(int count, ISet<string> excluded)
     {

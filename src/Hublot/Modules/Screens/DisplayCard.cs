@@ -19,6 +19,8 @@ internal sealed class DisplayCard(DisplayInfo display, bool connected) : CardCon
 
     public override string Key => "display:" + display.Path;
 
+    public override string? SettingsPage => "Displays";
+
     // Un écran se branche aussi pendant une présentation ou un jeu : réglage général du plein écran.
     public override void Draw(in CardContext ctx)
     {

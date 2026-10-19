@@ -57,6 +57,9 @@ internal abstract class CardContent
 
     /// <summary>S'affiche aussi par-dessus une application en plein écran (sinon : réglage général).</summary>
     public virtual bool ShowOverFullscreen(Settings settings) => false;
+
+    /// <summary>Page de Hublot Core qui règle ce popup (menu du clic droit), ou null.</summary>
+    public virtual string? SettingsPage => null;
 }
 
 /// <summary>Ligne de la carte du survol de l'icône (une par appareil, par lecture en cours…).</summary>

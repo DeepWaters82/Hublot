@@ -44,6 +44,22 @@ internal static class Program
             return 0;
         }
 
+        if (args.Length >= 2 && args[0] == "--audio")
+        {
+            // --audio FICHIER : points de terminaison audio (état, sens, nom, adaptateur, bus), pour diagnostiquer la prise jack.
+            var lines = new List<string>();
+            if (Interop.CoreAudio.Subscribe((_, _) => { }))
+            {
+                foreach (var (id, state) in Interop.CoreAudio.States())
+                    if (Interop.CoreAudio.Describe(id) is { } e)
+                        lines.Add($"{state}\t{(e.Render ? "sortie" : "entrée")}\t{e.Name}\t{e.Adapter}\t{e.Bus}");
+                Interop.CoreAudio.Unsubscribe();
+            }
+            else lines.Add("API audio indisponible");
+            File.WriteAllLines(args[1], lines);
+            return 0;
+        }
+
         using var mutex = new Mutex(true, @"Local\Hublot.SingleInstance", out bool first);
         if (!first) return 0;
 

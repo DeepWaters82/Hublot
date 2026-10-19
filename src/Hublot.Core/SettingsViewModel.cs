@@ -12,7 +12,10 @@ namespace HublotCore;
 /// </summary>
 public sealed class SettingsViewModel : INotifyPropertyChanged
 {
-    private readonly Settings _s = Settings.Load();
+    /// <summary>Capture de la page GitHub : réglages par défaut, langue inchangée, et rien n'est jamais enregistré.</summary>
+    public static bool Demo { get; set; }
+
+    private readonly Settings _s = Demo ? new Settings() : Settings.Load();
     private readonly DispatcherTimer _preview = new() { Interval = TimeSpan.FromMilliseconds(450) };
 
     public SettingsViewModel()
@@ -204,7 +207,11 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public bool DisplayNotifyConnect { get => _s.DisplayNotifyConnect; set => Set(() => _s.DisplayNotifyConnect = value, preview: false); }
     public bool DisplayNotifyDisconnect { get => _s.DisplayNotifyDisconnect; set => Set(() => _s.DisplayNotifyDisconnect = value, preview: false); }
     public bool QuietInputSleep { get => _s.QuietInputSleep; set => Set(() => _s.QuietInputSleep = value, preview: false); }
+    public bool QuietMouseSleep { get => _s.QuietMouseSleep; set => Set(() => _s.QuietMouseSleep = value, preview: false); }
     public bool ModulePower { get => _s.ModulePower; set => Set(() => _s.ModulePower = value, preview: false); }
+    public bool ModuleAudio { get => _s.ModuleAudio; set => Set(() => _s.ModuleAudio = value, preview: false); }
+    public bool AudioNotifyPlugged { get => _s.AudioNotifyPlugged; set => Set(() => _s.AudioNotifyPlugged = value, preview: false); }
+    public bool AudioNotifyUnplugged { get => _s.AudioNotifyUnplugged; set => Set(() => _s.AudioNotifyUnplugged = value, preview: false); }
     public bool PowerNotifyPlugged { get => _s.PowerNotifyPlugged; set => Set(() => _s.PowerNotifyPlugged = value, preview: false); }
     public bool PowerNotifyUnplugged { get => _s.PowerNotifyUnplugged; set => Set(() => _s.PowerNotifyUnplugged = value, preview: false); }
     public bool PowerShowInFullscreen { get => _s.PowerShowInFullscreen; set => Set(() => _s.PowerShowInFullscreen = value, preview: false); }
@@ -241,6 +248,17 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         foreach (var app in MediaStore.LoadApps().OrderByDescending(a => a.LastSeen))
             MediaApps.Add(new MediaAppItem(app,
                 _s.MediaExcludedApps.Contains(app.Id) ? 2 : _s.MediaAlwaysShownApps.Contains(app.Id) ? 1 : 0, SetMediaAppMode));
+        OnPropertyChanged(nameof(HasMediaApps));
+    }
+
+    /// <summary>Applications d'exemple (capture de la page GitHub) : rien de ce que l'utilisateur a écouté.</summary>
+    public void UseSampleMediaApps()
+    {
+        MediaApps.Clear();
+        var now = DateTime.Now;
+        MediaApps.Add(new MediaAppItem(new MediaApp("Spotify.exe", "Spotify", now.AddMinutes(-3)), 0, (_, _) => { }));
+        MediaApps.Add(new MediaAppItem(new MediaApp("YouTubeMusic", "YouTube Music", now.AddHours(-2)), 0, (_, _) => { }));
+        MediaApps.Add(new MediaAppItem(new MediaApp("Chrome", "Google Chrome", now.AddDays(-1)), 1, (_, _) => { }));
         OnPropertyChanged(nameof(HasMediaApps));
     }
 
@@ -293,6 +311,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     private void Set(Action apply, bool preview = true, [CallerMemberName] string? name = null)
     {
+        if (Demo) return;
         SyncServiceOwned();
         apply();
         try { _s.Save(); }

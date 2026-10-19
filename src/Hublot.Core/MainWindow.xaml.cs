@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Hublot.Common;
 
@@ -46,6 +47,7 @@ public partial class MainWindow : Window
             ["General"] = GeneralPage,
             ["NowPlaying"] = NowPlayingPage,
             ["Usb"] = UsbPage,
+            ["Audio"] = AudioPage,
             ["Power"] = PowerPage,
             ["Displays"] = DisplaysPage,
             ["Notifications"] = NotificationsPage,
@@ -224,6 +226,47 @@ public partial class MainWindow : Window
         UpdateButton.IsEnabled = true;
     }
 
+    /// <summary>
+    /// Image d'une page entière (page GitHub) : rendue à sa hauteur complète, sur le fond du thème, puis
+    /// <paramref name="done"/>. La fenêtre est affichée hors de l'écran (la mise en page en a besoin).
+    /// </summary>
+    public void SaveScreenshot(string page, string file, double scale, Action done)
+    {
+        ShowPage(page);
+        if (page == "NowPlaying")
+        {
+            _vm.UseSampleMediaApps();
+            EmptyMediaApps.Visibility = Visibility.Collapsed;
+        }
+        Dispatcher.BeginInvoke(() =>
+        {
+            try
+            {
+                if (!_pages.TryGetValue(page, out var element)) return;
+                const double Pad = 24;
+                var size = new Size(element.ActualWidth + 2 * Pad, element.ActualHeight + 2 * Pad);
+                var background = TryFindResource("SolidBackgroundFillColorBaseBrush") as Brush ?? Brushes.Black;
+                var visual = new DrawingVisual();
+                using (var dc = visual.RenderOpen())
+                {
+                    dc.DrawRectangle(background, null, new Rect(size));
+                    dc.DrawRectangle(new VisualBrush(element), null, new Rect(Pad, Pad, element.ActualWidth, element.ActualHeight));
+                }
+                var bitmap = new RenderTargetBitmap((int)Math.Ceiling(size.Width * scale), (int)Math.Ceiling(size.Height * scale),
+                    96 * scale, 96 * scale, PixelFormats.Pbgra32);
+                bitmap.Render(visual);
+                var encoder = new PngBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                using var stream = File.Create(file);
+                encoder.Save(stream);
+            }
+            finally
+            {
+                done();
+            }
+        }, DispatcherPriority.ApplicationIdle);
+    }
+
     /// <summary>Page affichée à l'ouverture (argument --page, depuis le menu de l'icône).</summary>
     public void ShowPage(string page)
     {
@@ -285,6 +328,8 @@ public partial class MainWindow : Window
     private void OnPreviewUsb(object sender, RoutedEventArgs e) => _vm.Preview(3);
 
     private void OnPreviewPower(object sender, RoutedEventArgs e) => _vm.Preview(4);
+
+    private void OnPreviewAudio(object sender, RoutedEventArgs e) => _vm.Preview(6);
 
     private void OnPreviewDisplays(object sender, RoutedEventArgs e) => _vm.Preview(5);
 

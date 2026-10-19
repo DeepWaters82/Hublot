@@ -181,6 +181,22 @@ internal sealed unsafe class TrayIcon : NativeWindow
     }
 
     /// <summary>
+    /// Menu contextuel d'une carte (clic droit), au pointeur ; renvoie l'identifiant choisi, 0 si rien.
+    /// </summary>
+    public nuint ShowContextMenu(IReadOnlyList<(nuint Id, string Text)> items)
+    {
+        POINT p;
+        User32.GetCursorPos(&p);
+        var menu = User32.CreatePopupMenu();
+        foreach (var (id, text) in items) User32.AppendMenuW(menu, User32.MF_STRING, id, text);
+        User32.SetForegroundWindow(Handle);
+        int command = User32.TrackPopupMenuEx(menu, User32.TPM_RIGHTBUTTON | User32.TPM_RETURNCMD, p.X, p.Y, Handle, 0);
+        User32.PostMessageW(Handle, Msg.WM_NULL, 0, 0);
+        User32.DestroyMenu(menu);
+        return (nuint)command;
+    }
+
+    /// <summary>
     /// Menus Win32 sombres quand Windows est en mode sombre (uxtheme, ordinaux 135 SetPreferredAppMode
     /// et 136 FlushMenuThemes — API non documentée mais stable depuis Windows 10 1903).
     /// </summary>

@@ -251,6 +251,45 @@ src/Hublot/
 - Hublot Core : barre de sélection du menu = une seule `NavPill` sur un `Canvas` superposé, animée par
   `CompositionTarget.Rendering` (extrémité de tête puis de queue, 350 ms), comme NavigationView.
 
+## Module « Prise audio » (3.7.0)
+
+- `Interop/CoreAudio.cs` : MMDevice API par la table de méthodes ; objet `IMMNotificationClient` fait main
+  (vtable de pointeurs `[UnmanagedCallersOnly]`, jamais libéré). `Subscribe` sur un thread du pool
+  (`CoInitializeEx` multithread), `States()` = référence initiale, `Describe(id)` = description
+  (PKEY_Device_DeviceDesc), adaptateur (PKEY_DeviceInterface_FriendlyName), sens (`IMMEndpoint`), chemin PnP
+  de l'adaptateur (`{b3f8fa53-0004-438e-9003-51a46e139bfc},2` : « {1}.HDAUDIO… »).
+- `JackModule` : seule la transition débranché (4) ↔ actif (1) d'un point de terminaison connu compte ; bus
+  BTH / USB ignorés (un casque Bluetooth déconnecté est « débranché ») ; regroupement 700 ms (casque à micro =
+  sortie + entrée → une carte, sortie de préférence) ; veille : 15 s de silence au réveil. `JackCard` (tuile
+  casque ou micro). Réglages `ModuleAudio`, `AudioNotifyPlugged`, `AudioNotifyUnplugged` ; page `Audio`
+  (aperçu 6). Diagnostic : `Hublot.exe --audio FICHIER` (états, sens, noms, bus). Limite : un point de
+  terminaison « haut-parleurs / casque » unique ne change jamais d'état sur certains PC.
+
+## Corrections 3.7.0 (appareils, dongles, paramètres)
+
+- **Veille** : `QuietInputSleep` = claviers seulement ; `QuietMouseSleep` (désactivé) pour les souris. Avant,
+  une souris éteinte / rallumée (Pebble) était prise pour une souris en veille : ni déconnexion ni reconnexion
+  (30 min). Seule la première connexion après un nouvel appairage passait (type pas encore résolu).
+- **Doublons** : un appareil Bluetooth appairé de nouveau change de conteneur, donc de clé.
+  `DeviceRegistry.Supersede` (nouvelle clé `bt:` inconnue, entrée de même nom plus appairée) reprend
+  l'ancienne entrée ; `PruneStale` au lancement (après `SeedRegistry`) ; la sourdine suit (`TransferMute`).
+- **Dongles** : `UsbKind.Receiver` (VID 046D + PID de `LogitechSource.IsReceiver`, ou nom « receiver »,
+  « dongle », « unifying »…). Récepteur Logitech avec la source active : carte USB différée de 3,5 s et
+  abandonnée si une `DeviceCard` liée par dongle est affichée (la carte de l'appareil, avec nom et batterie).
+- **Clic droit sur une carte** : `SurfaceInput.Click` (bouton droit) → `Popup.ContextMenuRequested` →
+  `App.OnCardMenu` : *Paramètres de ce popup…* (`CardContent.SettingsPage`) et *Fermer* ; menu par
+  `TrayIcon.ShowContextMenu`, fermeture automatique suspendue pendant le menu.
+- **Désinstallation** : `UninstallDialog` (case « Conserver mes paramètres », cochée) → `Installer.Uninstall(keepSettings)`.
+- **Hublot Core** : tuiles des modules et logo en `AccentFillColorDefaultBrush` / `TextOnAccentFillColorPrimaryBrush`
+  (suivent l'accentuation et le thème), logo aussi en icône de fenêtre.
+- **Défauts** de « Lecture en cours » : tout activé sauf « aussi à la mise en pause » ; raccourci du lecteur
+  permanent Ctrl + 0 du pavé numérique (0x60 ; le 0 du haut est le zoom 100 % des navigateurs).
+- **Page GitHub** : `HublotCore.exe --screenshot PAGE FICHIER en` (fenêtre hors écran, réglages par défaut,
+  applications d'exemple, rien n'est enregistré : `SettingsViewModel.Demo`) → `now-playing-settings.png` ;
+  `Hublot.exe --snapshot DOSSIER 1.5 en` → `sombre-12.png` = `audio-jack.png` (et `album-colors.png`, planche
+  de contrôle Windows / pochette). Section « Album art colors » du README : captures réelles du lecteur
+  fournies par l'utilisateur (`album-colors-1.png` à `-5.png`).
+
 ## Langues (français / anglais)
 
 - **Tous les textes** sont dans `src/Hublot/Common/Strings.cs` (partagé avec Hublot Core) : clé → (français,

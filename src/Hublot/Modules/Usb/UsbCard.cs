@@ -23,6 +23,8 @@ internal sealed class UsbCard(UsbState state) : CardContent
 
     public override bool ShowOverFullscreen(Settings settings) => settings.UsbShowInFullscreen;
 
+    public override string? SettingsPage => "Usb";
+
     internal static string StatusText(UsbState p)
     {
         if (!p.Connected) return L.T("Device.Disconnected");
@@ -31,7 +33,7 @@ internal sealed class UsbCard(UsbState state) : CardContent
             StorageState.Known when p.Storage is { } s => L.F("Usb.Used", UsbState.Size(s.Used), UsbState.Size(s.Total)),
             StorageState.Pending => L.T("Usb.Reading"),
             StorageState.Unavailable => L.T("Usb.NoVolume"),
-            _ => L.T("Usb.Connected"),
+            _ => L.T(p.Kind == UsbKind.Receiver ? "Usb.ConnectedReceiver" : "Usb.Connected"),
         };
     }
 

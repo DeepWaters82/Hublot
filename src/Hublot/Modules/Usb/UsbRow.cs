@@ -50,6 +50,7 @@ internal static class UsbGlyphs
         UsbKind.Phone => "",
         UsbKind.Printer => "",
         UsbKind.Bluetooth => "",
+        UsbKind.Receiver => "\uE703",
         UsbKind.Gamepad => "",
         _ => "",
     };

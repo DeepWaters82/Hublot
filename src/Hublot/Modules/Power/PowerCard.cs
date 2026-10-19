@@ -27,6 +27,8 @@ internal sealed class PowerCard(PowerState state) : CardContent
 
     public override bool ShowOverFullscreen(Settings settings) => settings.PowerShowInFullscreen;
 
+    public override string? SettingsPage => "Power";
+
     public override void ContinueFrom(CardContent previous, long now, AnimClock clock, bool replay)
     {
         // Nouveau pourcentage pendant l'affichage : garde le motif du popup (niveau atteint…).

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Hublot.Common;
 using Hublot.Interop;
+using Hublot.Modules.Audio;
 using Hublot.Modules.Bluetooth;
 using Hublot.Modules.NowPlaying;
 using Hublot.Modules.Power;
@@ -31,6 +32,7 @@ internal static class Snapshot
             new PowerCard(new PowerState("Laptop-PC", false, 18, false, 2 * 3600 + 20 * 60)),
             new PowerCard(new PowerState("Laptop-PC", true, 80, true, null, PowerReason.LevelReached)),
             new DisplayCard(new DisplayInfo("p", "", "DELL U2720Q", "HDMI", 2560, 1440, 60, false, 0, 0), connected: true),
+            new JackCard(new JackState(L.T("Jack.Headphones"), "Realtek(R) Audio", true, true, true)),
             new HoverCard(
             [
                 new MediaRow(media, (_, _) => { }),
@@ -113,6 +115,64 @@ internal static class Snapshot
             }
             sheet.SavePng(Path.Combine(directory, "couleurs-pochette.png"));
         }
+
+        // Page GitHub : à gauche les couleurs de Windows, à droite celles de la pochette (même carte, thème sombre).
+        {
+            (string Title, string Artist, uint Top, uint Bottom, uint Disc)[] tracks =
+            [
+                ("Neon Skyline", "Aurora Drive", 0xFF24104F, 0xFF5B2A86, 0xFFFF6EC7),
+                ("Golden Hour", "The Lanterns", 0xFF8A4B08, 0xFFF2A93B, 0xFFFFE8A3),
+                ("Deep Blue", "Coastline", 0xFF0B3D5C, 0xFF1E88A8, 0xFF9BE7F0),
+            ];
+            var dark = themes[1].Theme;
+            var classic = new Settings { MediaCoverColors = false };
+            int m = PopupRenderer.ShadowMargin(scale);
+            var probe = new MediaCard(media with { Timeline = new MediaTimeline(TimeSpan.Zero, TimeSpan.FromMinutes(3), DateTime.UtcNow) }, (_, _) => { });
+            int w = (int)MathF.Round(probe.Width * scale), h = (int)MathF.Round(probe.Height * scale);
+            using var board = new Canvas(2 * (w + m) + m, tracks.Length * (h + m) + m);
+            board.Fill(0xFF1B2633);
+            for (int row = 0; row < tracks.Length; row++)
+            {
+                var (title, artist, top, bottom, disc) = tracks[row];
+                var state = media with
+                {
+                    Title = title, Artist = artist, Cover = SampleArt(top, bottom, disc), CanSeek = true,
+                    Timeline = new MediaTimeline(TimeSpan.FromSeconds(48 + 37 * row), TimeSpan.FromSeconds(214), DateTime.UtcNow),
+                };
+                for (int col = 0; col < 2; col++)
+                {
+                    var card = new RectF(m + col * (w + m), m + row * (h + m), w, h);
+                    board.FillRoundRect(card, PopupRenderer.CornerRadius * scale, dark.Background);
+                    new MediaCard(state, (_, _) => { }).Draw(new CardContext(board, card, dark, scale, Stopwatch.GetTimestamp(),
+                        new AnimClock(false, 1), -1, col == 0 ? classic : settings));
+                }
+            }
+            board.SavePng(Path.Combine(directory, "album-colors.png"));
+        }
+    }
+
+    /// <summary>Pochette de démonstration « illustrée » : dégradé vertical et disque (soleil) d'une troisième couleur.</summary>
+    private static Cover SampleArt(uint top, uint bottom, uint disc)
+    {
+        const int size = 192;
+        var pixels = new byte[size * size * 4];
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            float k = y / (float)(size - 1);
+            float dx = x - size * 0.62f, dy = y - size * 0.42f;
+            bool sun = dx * dx + dy * dy < size * size * 0.06f;
+            uint c = sun ? disc : 0;
+            int i = (y * size + x) * 4;
+            for (int ch = 0; ch < 3; ch++)
+            {
+                int shift = ch * 8;
+                float a = (top >> shift) & 0xFF, b = (bottom >> shift) & 0xFF;
+                pixels[i + ch] = sun ? (byte)((c >> shift) & 0xFF) : (byte)(a + (b - a) * k);
+            }
+            pixels[i + 3] = 255;
+        }
+        return new Cover(pixels, size);
     }
 
     /// <summary>Pochette de démonstration d'une teinte : dégradé vers le noir, avec un coin clair.</summary>

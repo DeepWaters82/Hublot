@@ -14,7 +14,13 @@ public partial class App : Application
     private Mutex? _single;
 
     // Langue choisie appliquée avant la lecture d'App.xaml (libellés « Activé / Désactivé » des interrupteurs).
-    static App() => Hublot.Common.Settings.Load();
+    static App()
+    {
+        Hublot.Common.Settings.Load();
+        // Capture de la page GitHub en anglais, sans toucher à la langue choisie.
+        var args = Environment.GetCommandLineArgs();
+        if (args.Contains("--screenshot") && args.Contains("en")) Hublot.Common.L.Apply(Hublot.Common.AppLanguage.English);
+    }
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -31,14 +37,30 @@ public partial class App : Application
         if (e.Args.Contains("--uninstall"))
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            if (MessageBox.Show(Hublot.Common.L.T("Uninstall.Confirm"), "Hublot",
-                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            var dialog = new UninstallDialog();
+            if (dialog.ShowDialog() == true)
             {
-                Installer.Uninstall();
+                Installer.Uninstall(keepSettings: dialog.KeepSettings);
                 Installer.RemoveInstallFolderAfterExit(); // attend la fermeture de cet exécutable
                 MessageBox.Show(Hublot.Common.L.T("Uninstall.Done"), "Hublot", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             Shutdown();
+            return;
+        }
+
+        int shot = Array.IndexOf(e.Args, "--screenshot");
+        if (shot >= 0 && shot + 2 < e.Args.Length)
+        {
+            // --screenshot PAGE FICHIER [en] : image d'une page entière, sans afficher la fenêtre à l'écran.
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            SettingsViewModel.Demo = true;
+            var hidden = new MainWindow
+            {
+                WindowStartupLocation = WindowStartupLocation.Manual, Left = -30000, Top = -30000, Width = 1100,
+                ShowActivated = false, ShowInTaskbar = false,
+            };
+            hidden.Show();
+            hidden.SaveScreenshot(e.Args[shot + 1], e.Args[shot + 2], 1.5, Shutdown);
             return;
         }
 

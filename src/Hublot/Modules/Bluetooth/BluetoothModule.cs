@@ -118,11 +118,31 @@ internal sealed class BluetoothModule : Module
     private void SeedRegistry()
     {
         if (_registry is null) return;
-        foreach (var source in _sources.Values)
-        foreach (var state in source.KnownDevices())
-            _registry.Observe(state);
+        var known = _sources.Values.SelectMany(s => s.KnownDevices()).ToList();
+        foreach (var state in known) _registry.Observe(state);
+        // Doublons laissés par un appareil supprimé puis appairé de nouveau.
+        foreach (var (old, current) in _registry.PruneStale(known)) TransferMute(old, current);
         _seeded = true;
         _registry.Save();
+    }
+
+    /// <summary>Clés de tous les appareils appairés ou connus des sources, connectés ou non.</summary>
+    private HashSet<string> PairedKeys()
+        => _sources.Values.SelectMany(s => s.KnownDevices()).Select(d => d.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Appareil appairé de nouveau sous une autre clé : sa sourdine le suit.</summary>
+    private void TransferMute(string oldKey, string newKey)
+    {
+        if (!Settings.MutedDevices.Remove(oldKey)) return;
+        Settings.MutedDevices.Add(newKey);
+        try
+        {
+            Settings.Save();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Report de la sourdine", ex);
+        }
     }
 
     private void ScheduleSave()
@@ -150,6 +170,12 @@ internal sealed class BluetoothModule : Module
     {
         if (_registry is null) return;
         state = Enrich(state);
+        // Appairé de nouveau (supprimé puis remis) : même appareil que l'ancienne entrée, pas un nouvel appareil.
+        if (_seeded && _registry.Supersede(state, PairedKeys()) is { } previousKey)
+        {
+            Log.Write($"Appareil appairé de nouveau : {state.Name}");
+            TransferMute(previousKey, state.Key);
+        }
         bool isNew = _registry.Observe(state) && _seeded;
         ScheduleSave();
 
@@ -169,10 +195,12 @@ internal sealed class BluetoothModule : Module
             && (_lastEvent.Key == state.Key || _lastEvent.Name == state.Name)) return;
         _lastEvent = (state.Key, state.Name, state.Connected, now);
 
-        // Claviers et souris (MX Keys, MX Master…) : ils coupent la liaison après quelques minutes sans être
+        // Claviers (MX Keys…) et, en option, souris : ils coupent la liaison après quelques minutes sans être
         // touchés et la rétablissent au premier appui. Ni la déconnexion, ni la reconnexion qui suit (dans les
         // 30 min) ne sont des événements ; une reconnexion après une longue absence s'affiche normalement.
-        bool sleepy = Settings.QuietInputSleep && state.Kind is DeviceKind.Keyboard or DeviceKind.Mouse;
+        // Souris exclues par défaut : éteinte puis rallumée, elle ne se distingue pas d'une souris qui se réveille.
+        bool sleepy = state.Kind == DeviceKind.Keyboard ? Settings.QuietInputSleep
+            : state.Kind == DeviceKind.Mouse && Settings.QuietMouseSleep;
 
         if (state.Connected)
         {

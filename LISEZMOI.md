@@ -16,7 +16,8 @@ Des modules visuels pour Windows, au plus près du **Fluent Design** de Windows 
 Double-cliquez sur **`Hublot-Setup.exe`** puis sur *Installer* : installation pour votre compte, sans
 droits administrateur. Relancer le même fichier met à jour Hublot ; une installation de WinTooth
 (nom précédent) est remplacée et ses réglages repris. Désinstallation : *Paramètres Windows ›
-Applications › Applications installées › Hublot*.
+Applications › Applications installées › Hublot* ; une case permet de **conserver ses paramètres** (cochée
+par défaut) pour une prochaine installation.
 
 Depuis les sources : `.\build.ps1` (SDK .NET 10) → `dist\Hublot-Setup.exe`, copié aussi dans
 `C:\Projets Claude\MAJ Projet Hublot\` avec `version.txt`.
@@ -31,6 +32,9 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
   souris est dessus ;
 - **clic** ou **Ctrl + Alt + B** (modifiable) : une carte par élément, empilées en coin ou côte à côte au centre ;
 - **clic droit** : *Appareils et lecture en cours*, *Écrans connectés* (s'il y a plus d'un écran), *Paramètres…*, *Quitter*.
+
+Un **clic droit sur une popup** propose *Paramètres de ce popup…* (la page du module dans les
+paramètres) et *Fermer*.
 
 ## Lecture en cours : ce qu'il faut savoir
 
@@ -54,14 +58,14 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
   reprise, aussi à la mise en pause), toujours au même emplacement. On le **déplace à la souris** : il suit
   le pointeur, y compris vers un autre écran, puis se cale sur l'emplacement le plus proche (coins, haut ou
   bas au centre) ; l'emplacement et l'écran sont retenus. C'est le seul moyen de le placer.
-- **Lecteur permanent** : le **raccourci clavier** (Ctrl + Alt + P par défaut) garde le lecteur affiché en
+- **Lecteur permanent** : le **raccourci clavier** (Ctrl + 0 du pavé numérique par défaut) garde le lecteur affiché en
   permanence, ou le masque ; Hublot s'en souvient, même après un redémarrage. Il est effacé en fondu pendant
   un plein écran ; un clic dessus le ferme jusqu'au titre suivant, ou le masque comme le raccourci (option
   « Le clic masque jusqu'au raccourci »). Sans raccourci actif, pas de lecteur permanent.
 - **Progression du titre** (temps écoulé, barre, durée — si l'application la communique).
 - **Progression cliquable** (avec la progression) : un clic sur la barre avance ou recule dans le titre,
   si l'application l'accepte ; au survol, la barre s'épaissit et indique le temps visé.
-- **Icône de la source cliquable** (option) : un clic sur l'icône de l'application, en haut à droite de
+- **Icône de la source cliquable** (activé par défaut) : un clic sur l'icône de l'application, en haut à droite de
   la carte, ouvre l'application (sa fenêtre passe au premier plan ; pour un navigateur, sa dernière fenêtre) ;
   un second clic, l'application étant au premier plan, la réduit.
 - **Couleurs de la pochette** (activé par défaut) : la carte prend une teinte tirée de la pochette, et le
@@ -103,14 +107,24 @@ L'icône de Hublot (un hublot bleu partagé en quatre par une croisée) vit dans
   de Hublot, ni quand un écran se rallume (veille des écrans, sortie de veille du PC).
 - **Aucun popup au lancement** : quel que soit le module, rien ne s'affiche pendant la minute qui suit le
   démarrage de Windows (10 s si Hublot est lancé à la main).
-- **Claviers et souris en veille** (MX Keys, MX Master…) : ils se déconnectent après quelques minutes
-  sans être touchés et se reconnectent au premier appui. Ces déconnexions et reconnexions (dans les
-  30 min) n'affichent rien ; option dans *Notifications d'appareils*.
+- **Claviers en veille** (MX Keys…) : ils se déconnectent après quelques minutes sans être touchés et se
+  reconnectent au premier appui. Ces déconnexions et reconnexions (dans les 30 min) n'affichent rien ;
+  option dans *Notifications d'appareils*. **Souris** : option séparée, désactivée par défaut — une souris
+  éteinte puis rallumée (Pebble…) ne se distingue pas d'une souris qui se réveille.
+- **Appareil appairé de nouveau** (supprimé puis remis dans Windows) : il reprend son entrée (type,
+  sourdine) au lieu d'apparaître en double ; les doublons déjà présents disparaissent au lancement.
+- **Dongles Logitech** : au branchement du récepteur, c'est la carte de l'appareil relié (nom, batterie)
+  qui s'affiche ; celle du récepteur (« récepteur sans fil ») seulement si aucun appareil ne s'annonce.
+- **Prise audio** (module, activé par défaut) : popup au branchement / débranchement d'un casque, d'écouteurs
+  ou d'un micro sur la prise jack, si le pilote audio le signale (Realtek…) ; un casque à micro donne une
+  seule carte. Les casques Bluetooth et USB passent par leurs propres modules.
+  Diagnostic : `Hublot.exe --audio fichier.txt` liste les sorties et entrées audio et leur état.
 
 ## Paramètres
 
 Les mises à jour conservent tous les réglages : ils sont rangés dans `%LocalAppData%\Hublot\`, hors du
-dossier d'installation, et l'installateur n'y touche pas (seule la désinstallation les supprime).
+dossier d'installation, et l'installateur n'y touche pas (la désinstallation les supprime, sauf si l'on
+choisit de les conserver).
 
 ### Changer de PC
 

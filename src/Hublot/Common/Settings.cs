@@ -77,10 +77,15 @@ public sealed class Settings
     /// <summary>Pas de popup pour les déconnexions / reconnexions liées à la mise en veille.</summary>
     public bool IgnoreResumeConnections { get; set; } = true;
     /// <summary>
-    /// Claviers et souris Bluetooth qui se déconnectent en veille (MX Keys…) : pas de popup de déconnexion,
-    /// ni de reconnexion dans les <see cref="InputSleepMinutes"/> minutes.
+    /// Claviers qui se déconnectent en veille (MX Keys…) : pas de popup de déconnexion, ni de reconnexion dans
+    /// les <see cref="InputSleepMinutes"/> minutes. (Nom d'avant 3.7.0, quand l'option valait aussi pour les souris.)
     /// </summary>
     public bool QuietInputSleep { get; set; } = true;
+    /// <summary>
+    /// Même chose pour les souris (3.7.0), désactivée par défaut : une souris qu'on éteint puis rallume (Pebble…)
+    /// ne se distingue pas d'une souris qui se réveille, et ses popups disparaissaient.
+    /// </summary>
+    public bool QuietMouseSleep { get; set; }
     public const int InputSleepMinutes = 30;
     public bool ShowInFullscreen { get; set; }
     /// <summary>Clés des appareils dont on ne veut aucune notification.</summary>
@@ -109,6 +114,11 @@ public sealed class Settings
     public bool DisplayNotifyConnect { get; set; } = true;
     public bool DisplayNotifyDisconnect { get; set; } = true;
 
+    // Module « Prise audio » (3.7.0) : casque, écouteurs ou micro branché / débranché sur une prise jack.
+    public bool ModuleAudio { get; set; } = true;
+    public bool AudioNotifyPlugged { get; set; } = true;
+    public bool AudioNotifyUnplugged { get; set; } = true;
+
     // Module « Alimentation »
     public bool PowerNotifyPlugged { get; set; } = true;
     public bool PowerNotifyUnplugged { get; set; } = true;
@@ -136,10 +146,10 @@ public sealed class Settings
     public bool MediaNotifyTrackChange { get; set; } = true;
     /// <summary>Popup aussi à la reprise de la lecture (même titre).</summary>
     public bool MediaNotifyOnResume { get; set; } = true;
-    /// <summary>Popup aussi à la mise en pause.</summary>
-    public bool MediaNotifyOnPause { get; set; } = true;
+    /// <summary>Popup aussi à la mise en pause (seule option du lecteur désactivée par défaut, 3.7.0).</summary>
+    public bool MediaNotifyOnPause { get; set; }
     /// <summary>Pas de popup quand l'application qui joue est au premier plan.</summary>
-    public bool MediaHideWhenAppFocused { get; set; }
+    public bool MediaHideWhenAppFocused { get; set; } = true;
     /// <summary>
     /// Plateformes musicales uniquement : les grands services de musique (<see cref="Modules.NowPlaying.MediaApps"/>)
     /// et les onglets de navigateur qui déclarent un album ; ni vidéos, ni autres applications.
@@ -167,13 +177,16 @@ public sealed class Settings
     /// <summary>Couleurs de la pochette : teinte de fond et accentuation de la carte (façon Material You).</summary>
     public bool MediaCoverColors { get; set; } = true;
     /// <summary>Clic sur le mini-lecteur : masqué jusqu'au prochain appui sur son raccourci (sinon jusqu'au titre suivant).</summary>
-    public bool MediaPinnedClickUntilHotkey { get; set; }
+    public bool MediaPinnedClickUntilHotkey { get; set; } = true;
     /// <summary>Clic sur l'icône de l'application source : l'ouvre (premier plan).</summary>
-    public bool MediaOpenAppOnClick { get; set; }
-    /// <summary>Raccourci qui masque / réaffiche le mini-lecteur (0x50 = P, comme « player »).</summary>
+    public bool MediaOpenAppOnClick { get; set; } = true;
+    /// <summary>
+    /// Raccourci du lecteur permanent : Ctrl + 0 du pavé numérique par défaut depuis 3.7.0 (0x60 = VK_NUMPAD0 ; le 0
+    /// de la rangée du haut remet le zoom à 100 % dans les navigateurs, un raccourci global le leur prendrait).
+    /// </summary>
     public bool MediaPinnedHotkeyEnabled { get; set; } = true;
-    public int MediaPinnedHotkeyModifiers { get; set; } = ModControl | ModAlt;
-    public int MediaPinnedHotkeyKey { get; set; } = 0x50;
+    public int MediaPinnedHotkeyModifiers { get; set; } = ModControl;
+    public int MediaPinnedHotkeyKey { get; set; } = 0x60;
     /// <summary>Applications (AppUserModelId) dont les médias ne s'affichent jamais.</summary>
     /// Par défaut : Microsoft Teams, qui déclare ses appels et réunions comme des médias.
     public HashSet<string> MediaExcludedApps { get; } = new(StringComparer.OrdinalIgnoreCase) { "MSTeams_8wekyb3d8bbwe!MSTeams" };
@@ -313,6 +326,7 @@ public sealed class Settings
         Add(nameof(IgnoreStartupConnections), IgnoreStartupConnections);
         Add(nameof(IgnoreResumeConnections), IgnoreResumeConnections);
         Add(nameof(QuietInputSleep), QuietInputSleep);
+        Add(nameof(QuietMouseSleep), QuietMouseSleep);
         Add(nameof(ShowInFullscreen), ShowInFullscreen);
         Add(nameof(MutedDevices), string.Join('|', MutedDevices));
         Add(nameof(ClickAction), ClickAction);
@@ -328,6 +342,9 @@ public sealed class Settings
         Add(nameof(ModuleDisplays), ModuleDisplays);
         Add(nameof(DisplayNotifyConnect), DisplayNotifyConnect);
         Add(nameof(DisplayNotifyDisconnect), DisplayNotifyDisconnect);
+        Add(nameof(ModuleAudio), ModuleAudio);
+        Add(nameof(AudioNotifyPlugged), AudioNotifyPlugged);
+        Add(nameof(AudioNotifyUnplugged), AudioNotifyUnplugged);
         Add(nameof(PowerNotifyPlugged), PowerNotifyPlugged);
         Add(nameof(PowerNotifyUnplugged), PowerNotifyUnplugged);
         Add(nameof(PowerNotifyLevel), PowerNotifyLevel);
@@ -397,6 +414,7 @@ public sealed class Settings
             case nameof(IgnoreStartupConnections): IgnoreStartupConnections = ParseBool(value, IgnoreStartupConnections); break;
             case nameof(IgnoreResumeConnections): IgnoreResumeConnections = ParseBool(value, IgnoreResumeConnections); break;
             case nameof(QuietInputSleep): QuietInputSleep = ParseBool(value, QuietInputSleep); break;
+            case nameof(QuietMouseSleep): QuietMouseSleep = ParseBool(value, QuietMouseSleep); break;
             case nameof(ShowInFullscreen): ShowInFullscreen = ParseBool(value, ShowInFullscreen); break;
             case nameof(MutedDevices):
                 MutedDevices.Clear();
@@ -415,6 +433,9 @@ public sealed class Settings
             case nameof(ModuleDisplays): ModuleDisplays = ParseBool(value, ModuleDisplays); break;
             case nameof(DisplayNotifyConnect): DisplayNotifyConnect = ParseBool(value, DisplayNotifyConnect); break;
             case nameof(DisplayNotifyDisconnect): DisplayNotifyDisconnect = ParseBool(value, DisplayNotifyDisconnect); break;
+            case nameof(ModuleAudio): ModuleAudio = ParseBool(value, ModuleAudio); break;
+            case nameof(AudioNotifyPlugged): AudioNotifyPlugged = ParseBool(value, AudioNotifyPlugged); break;
+            case nameof(AudioNotifyUnplugged): AudioNotifyUnplugged = ParseBool(value, AudioNotifyUnplugged); break;
             case nameof(PowerNotifyPlugged): PowerNotifyPlugged = ParseBool(value, PowerNotifyPlugged); break;
             case nameof(PowerNotifyUnplugged): PowerNotifyUnplugged = ParseBool(value, PowerNotifyUnplugged); break;
             case nameof(PowerNotifyLevel): PowerNotifyLevel = ParseBool(value, PowerNotifyLevel); break;

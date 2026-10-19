@@ -2,7 +2,8 @@ using System.Globalization;
 
 namespace Hublot.Modules.Usb;
 
-internal enum UsbKind { Generic, Storage, Keyboard, Mouse, Audio, Webcam, Phone, Printer, Bluetooth, Gamepad }
+/// <summary><c>Receiver</c> : récepteur sans fil (dongle) d'un clavier, d'une souris, d'un casque…</summary>
+internal enum UsbKind { Generic, Storage, Keyboard, Mouse, Audio, Webcam, Phone, Printer, Bluetooth, Gamepad, Receiver }
 
 internal enum StorageState { None, Pending, Known, Unavailable }
 

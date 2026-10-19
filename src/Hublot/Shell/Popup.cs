@@ -123,6 +123,9 @@ internal sealed class Popup
 
     public event Action<PopupPosition, nint>? Dropped;
 
+    /// <summary>Clic droit sur une carte : menu contextuel (modal), fermeture automatique suspendue pendant ce temps.</summary>
+    public event Action<Popup, CardContent>? ContextMenuRequested;
+
     public bool IsVisible => _phase != Phase.Hidden;
 
     public PopupMode? Mode => IsVisible ? _mode : null;
@@ -352,7 +355,9 @@ internal sealed class Popup
                 break;
 
             case SurfaceInput.Click when card is not null:
-                ClickCard(card, x, y);
+                _clock.Stop(DismissTimer);
+                ContextMenuRequested?.Invoke(this, card.Content);
+                if (_hovered == 0 && _phase is Phase.Entering or Phase.Shown) RestartDismiss();
                 break;
         }
     }

@@ -74,8 +74,11 @@ internal static class Installer
         Process.Start(new ProcessStartInfo(ServicePath) { UseShellExecute = true, WorkingDirectory = InstallDir })?.Dispose();
     }
 
-    /// <summary>Désinstallation (depuis « Applications installées ») : fichiers, raccourcis, données.</summary>
-    public static void Uninstall()
+    /// <summary>
+    /// Désinstallation (depuis « Applications installées ») : fichiers, raccourcis, et données sauf si
+    /// l'utilisateur choisit de les conserver (réinstallation : tout est retrouvé).
+    /// </summary>
+    public static void Uninstall(bool keepSettings)
     {
         StopProcesses("Hublot");
         Native.SetStartup(false, ServicePath);
@@ -83,6 +86,7 @@ internal static class Installer
         TryDelete(OldMenuShortcut);
         Registry.CurrentUser.DeleteSubKeyTree(UninstallKey, throwOnMissingSubKey: false);
         TryDelete(ServicePath);
+        if (keepSettings) return;
         try { Directory.Delete(Hublot.Common.Settings.DirectoryPath, recursive: true); }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }

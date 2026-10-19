@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Hublot.Common;
 using Hublot.Interop;
 using Hublot.Modules;
+using Hublot.Modules.Audio;
 using Hublot.Modules.Bluetooth;
 using Hublot.Modules.NowPlaying;
 using Hublot.Modules.Power;
@@ -23,7 +24,7 @@ internal sealed class App : IHost
     private readonly Popup _popup;
     private readonly ConcurrentQueue<Action> _work = new();
     /// <summary>Ordre d'affichage dans les listes : la lecture en cours d'abord, puis les appareils, puis les stockages USB.</summary>
-    private readonly Module[] _modules = [new NowPlayingModule(), new BluetoothModule(), new UsbModule(), new PowerModule(), new DisplayModule()];
+    private readonly Module[] _modules = [new NowPlayingModule(), new BluetoothModule(), new UsbModule(), new PowerModule(), new DisplayModule(), new JackModule()];
     private readonly HashSet<Module> _running = [];
     private Settings _settings;
     private Popup? _pinned;
@@ -75,6 +76,7 @@ internal sealed class App : IHost
         };
         _tray.ExitRequested += Exit;
         _popup.Hidden += () => _tray.ScheduleTrim(1500);
+        _popup.ContextMenuRequested += OnCardMenu;
     }
 
     /// <summary>
@@ -252,6 +254,7 @@ internal sealed class App : IHost
         if (_pinned is null)
         {
             _pinned = new Popup(_settings) { Draggable = true };
+            _pinned.ContextMenuRequested += OnCardMenu;
             _pinned.Dropped += OnPinnedDropped;
             _pinned.Hidden += () =>
             {
@@ -343,6 +346,20 @@ internal sealed class App : IHost
     /// <summary>Popups et carte épinglée sur le même écran (écran de la souris : inconnu d'avance, considéré différent).</summary>
     private bool SameScreen() => _settings.Monitor == _settings.MediaPinnedMonitor
         && (_settings.Monitor != PopupMonitor.Specific || _settings.MonitorDevice == _settings.MediaPinnedMonitorDevice);
+
+    /// <summary>Clic droit sur une carte : paramètres de ce popup (page de Hublot Core du module), ou fermer.</summary>
+    private void OnCardMenu(Popup popup, CardContent card)
+    {
+        const nuint Settings = 1, Close = 2;
+        var items = new List<(nuint, string)>();
+        if (card.SettingsPage is not null) items.Add((Settings, L.T("CardMenu.Settings")));
+        items.Add((Close, L.T("CardMenu.Close")));
+        switch (_tray.ShowContextMenu(items))
+        {
+            case Settings: OpenCore(card.SettingsPage); break;
+            case Close: popup.Dismiss(); break;
+        }
+    }
 
     public void OpenCore(string? page = null)
     {
@@ -439,6 +456,7 @@ internal sealed class App : IHost
             case 3: _popup.Show(usb[0]); break;
             case 4: _popup.Show(power[0]); break;
             case 5: ShowDisplays(); break;
+            case 6: _popup.Show(_modules.OfType<JackModule>().First().PreviewCards().First()); break;
             default: _popup.Show(bluetooth[0]); break;
         }
     }

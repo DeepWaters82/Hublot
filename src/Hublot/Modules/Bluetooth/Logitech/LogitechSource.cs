@@ -23,6 +23,9 @@ internal sealed partial class LogitechSource : DeviceSource
     private static readonly string[] Properties = [ProductIdKey, UsageIdKey];
 
     private const ushort BoltPid = 0xC548;
+
+    /// <summary>Identifiant de produit (VID 046D) d'un récepteur Logitech pris en charge par cette source.</summary>
+    public static bool IsReceiver(ushort productId) => ReceiverPids.Contains(productId);
     private static readonly HashSet<ushort> ReceiverPids =
     [
         0xC52B, 0xC532,                                                     // Unifying

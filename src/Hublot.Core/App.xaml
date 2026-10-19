@@ -243,30 +243,35 @@
             <GradientStop Color="#0067C0" Offset="1" />
         </LinearGradientBrush>
 
-        <!-- Logo de Hublot : le logo Windows vu à travers un hublot (même dessin que l'icône du service) -->
+        <!-- Logo de Hublot : un hublot et sa croisée (même dessin que l'icône du service), aux couleurs
+             d'accentuation du thème : accentuation claire et traits sombres en mode sombre, l'inverse en mode clair. -->
         <DrawingImage x:Key="HublotLogo">
             <DrawingImage.Drawing>
                 <DrawingGroup>
-                    <GeometryDrawing Brush="{StaticResource WindowsBlue}">
+                    <GeometryDrawing Brush="{DynamicResource AccentFillColorDefaultBrush}">
                         <GeometryDrawing.Geometry>
                             <EllipseGeometry Center="12,12" RadiusX="11.6" RadiusY="11.6" />
                         </GeometryDrawing.Geometry>
                     </GeometryDrawing>
                     <!-- Croisée puis cerclage (même dessin que TrayIconRenderer) -->
-                    <GeometryDrawing Brush="White" Geometry="M11.27,3.5 h1.46 v17 h-1.46 Z M3.5,11.27 h17 v1.46 h-17 Z" />
-                    <GeometryDrawing>
-                        <GeometryDrawing.Pen>
-                            <Pen Brush="#E6FFFFFF" Thickness="1.55" />
-                        </GeometryDrawing.Pen>
-                        <GeometryDrawing.Geometry>
-                            <EllipseGeometry Center="12,12" RadiusX="8.5" RadiusY="8.5" />
-                        </GeometryDrawing.Geometry>
-                    </GeometryDrawing>
-                    <GeometryDrawing Geometry="M6.89,10.73 A5.27,5.27 0 0 1 10.02,7.11">
-                        <GeometryDrawing.Pen>
-                            <Pen Brush="#8CFFFFFF" Thickness="1.06" StartLineCap="Round" EndLineCap="Round" />
-                        </GeometryDrawing.Pen>
-                    </GeometryDrawing>
+                    <GeometryDrawing Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}" Geometry="M11.27,3.5 h1.46 v17 h-1.46 Z M3.5,11.27 h17 v1.46 h-17 Z" />
+                    <DrawingGroup Opacity="0.9">
+                        <GeometryDrawing>
+                            <GeometryDrawing.Pen>
+                                <Pen Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}" Thickness="1.55" />
+                            </GeometryDrawing.Pen>
+                            <GeometryDrawing.Geometry>
+                                <EllipseGeometry Center="12,12" RadiusX="8.5" RadiusY="8.5" />
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                    </DrawingGroup>
+                    <DrawingGroup Opacity="0.55">
+                        <GeometryDrawing Geometry="M6.89,10.73 A5.27,5.27 0 0 1 10.02,7.11">
+                            <GeometryDrawing.Pen>
+                                <Pen Brush="{DynamicResource TextOnAccentFillColorPrimaryBrush}" Thickness="1.06" StartLineCap="Round" EndLineCap="Round" />
+                            </GeometryDrawing.Pen>
+                        </GeometryDrawing>
+                    </DrawingGroup>
                 </DrawingGroup>
             </DrawingImage.Drawing>
         </DrawingImage>

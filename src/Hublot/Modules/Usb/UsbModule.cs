@@ -1,6 +1,9 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Hublot.Common;
 using Hublot.Interop;
+using Hublot.Modules.Bluetooth;
+using Hublot.Modules.Bluetooth.Logitech;
 using Hublot.Shell;
 using Windows.Devices.Enumeration;
 
@@ -36,6 +39,8 @@ internal sealed partial class UsbModule : Module
     /// <summary>Déconnexion suivie d'une reconnexion plus rapide que ça : ré-énumération, pas un événement.</summary>
     private const int FlapMs = 2000;
     private const int StorageWaitMs = 6000;
+    /// <summary>Récepteur Logitech : délai laissé à l'appareil relié pour s'annoncer (ouverture HID++, notification 0x41).</summary>
+    private const int ReceiverWaitMs = 3500;
     private const long ResumeGraceMs = 30_000;
 
     private sealed class Device(string interfaceId, string instanceId, Guid? container)
@@ -48,7 +53,7 @@ internal sealed partial class UsbModule : Module
         public bool Hub, Resolved, Announced;
         public long ConnectedAt = Environment.TickCount64;
         public string? LastTitle;
-        public Timer? PendingRemoval, StorageTimeout;
+        public Timer? PendingRemoval, StorageTimeout, ReceiverWait;
     }
 
     private sealed class Volume(Guid? container)
@@ -107,6 +112,7 @@ internal sealed partial class UsbModule : Module
         {
             device.PendingRemoval?.Dispose();
             device.StorageTimeout?.Dispose();
+            device.ReceiverWait?.Dispose();
         }
         _devices.Clear();
         _volumes.Clear();
@@ -177,6 +183,7 @@ internal sealed partial class UsbModule : Module
         {
             if (!_devices.Remove(interfaceId)) return;
             device.StorageTimeout?.Dispose();
+            device.ReceiverWait?.Dispose();
             if (device.Resolved && !device.Hub)
             {
                 // « Retirer le périphérique en toute sécurité » : Windows affiche déjà sa propre notification.
@@ -222,6 +229,9 @@ internal sealed partial class UsbModule : Module
         }
 
         var (kind, hub) = Classify(classes);
+        if (!hub && kind is UsbKind.Generic or UsbKind.Keyboard or UsbKind.Mouse or UsbKind.Audio
+            && (IsLogitechReceiver(device.InstanceId) || ReceiverName().IsMatch(name)))
+            kind = UsbKind.Receiver;
         _host?.Post(() =>
         {
             if (!_devices.ContainsKey(device.InterfaceId)) return;
@@ -237,9 +247,40 @@ internal sealed partial class UsbModule : Module
                 // Si aucun volume n'est monté d'ici là, la carte l'indiquera.
                 device.StorageTimeout = new Timer(_ => _host?.Post(() => Refresh(device)), null, StorageWaitMs, Timeout.Infinite);
             }
+            if (kind == UsbKind.Receiver && IsLogitechReceiver(device.InstanceId) && Host.Settings is { ModuleBluetooth: true, LogitechReceivers: true })
+            {
+                // L'appareil relié (souris, clavier…) s'annonce par sa propre carte, avec son nom et sa batterie : celle
+                // du récepteur n'apparaît que s'il ne s'est rien annoncé (appareil éteint).
+                device.ReceiverWait = new Timer(_ => _host?.Post(() => AnnounceReceiver(device)), null, ReceiverWaitMs, Timeout.Infinite);
+                return;
+            }
             Notify(Describe(device, connected: true), connected: true);
         });
     }
+
+    private void AnnounceReceiver(Device device)
+    {
+        if (_host is null || !_devices.ContainsKey(device.InterfaceId)) return;
+        if (Host.CurrentNotification is DeviceCard { State.Link: DeviceLink.Dongle })
+        {
+            Log.Write($"Récepteur USB : l'appareil relié s'est affiché, pas de carte du récepteur ({device.Name})");
+            return;
+        }
+        Notify(Describe(device, connected: true), connected: true);
+    }
+
+    [GeneratedRegex(@"VID_046D&PID_([0-9A-F]{4})", RegexOptions.IgnoreCase)]
+    private static partial Regex LogitechId();
+
+    /// <summary>Noms usuels des récepteurs sans fil (« USB Receiver », « 2.4G Wireless Receiver », « Unifying »…).</summary>
+    [GeneratedRegex(@"receiver|récepteur|dongle|wireless adapter|unifying|lightspeed|\bbolt\b|\bnano\b|2\.4\s?g", RegexOptions.IgnoreCase)]
+    private static partial Regex ReceiverName();
+
+    /// <summary>Récepteur Logitech pris en charge par le module « Appareils sans fil » (qui montre l'appareil relié).</summary>
+    private static bool IsLogitechReceiver(string instanceId)
+        => LogitechId().Match(instanceId) is { Success: true } m
+        && ushort.TryParse(m.Groups[1].Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var pid)
+        && LogitechSource.IsReceiver(pid);
 
     [GeneratedRegex(@"(?<![A-Za-z])Class_([0-9A-F]{2})(?:&SubClass_([0-9A-F]{2})(?:&Prot_([0-9A-F]{2}))?)?", RegexOptions.IgnoreCase)]
     private static partial Regex UsbClass();
