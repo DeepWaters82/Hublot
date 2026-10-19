@@ -91,7 +91,7 @@
                         <TextBlock Text="{local:Tr Ecrans}" Margin="14,0,0,0" VerticalAlignment="Center" />
                     </StackPanel>
                 </ListBoxItem>
-                <ListBoxItem Tag="Audio">
+                <ListBoxItem Tag="Audio" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE7F6;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
                         <TextBlock Text="{local:Tr PriseAudio}" Margin="14,0,0,0" VerticalAlignment="Center" />
@@ -211,7 +211,8 @@
                                 <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleDisplays}" VerticalAlignment="Top" />
                             </Grid>
                         </Border>
-                        <Border Style="{StaticResource CardBorder}" Padding="20,18">
+                        <!-- Module « Prise audio » mis de côté (3.7.2) : tuile, entrée de navigation et page masquées. -->
+                        <Border Style="{StaticResource CardBorder}" Padding="20,18" Visibility="Collapsed">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />

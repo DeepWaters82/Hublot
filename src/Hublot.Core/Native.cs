@@ -202,6 +202,23 @@ internal static class Native
     [DllImport("user32.dll")]
     private static extern bool ShowWindow(nint hwnd, int cmd);
 
+    private const int SHCNE_UPDATEITEM = 0x2000, SHCNE_ASSOCCHANGED = 0x08000000;
+    private const uint SHCNF_IDLIST = 0x0000, SHCNF_PATHW = 0x0005;
+
+    [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+    private static extern void SHChangeNotify(int eventId, uint flags, string? item1, nint item2);
+
+    /// <summary>
+    /// Nouvelle icône (mise à jour) : l'Explorateur garde en cache l'icône d'un exécutable ou d'un raccourci au même
+    /// chemin (barre des tâches, menu Démarrer). Chaque fichier est signalé comme modifié, puis le cache
+    /// d'icônes du système est vidé (SHCNE_ASSOCCHANGED).
+    /// </summary>
+    public static void RefreshShellIcons(params string[] paths)
+    {
+        foreach (var path in paths) SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATHW, path, 0);
+        SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, null, 0);
+    }
+
     private const int DWMWA_CAPTION_COLOR = 35, DWMWA_TEXT_COLOR = 36;
     private const uint DWMWA_COLOR_DEFAULT = 0xFFFFFFFF;
     private const string DwmKey = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\DWM";

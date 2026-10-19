@@ -126,6 +126,8 @@ public static partial class L
         ["Jack.WithMic"] = ("avec micro", "with mic"),
         ["Jack.Headphones"] = ("Casque", "Headphones"),
         ["Jack.Microphone"] = ("Microphone", "Microphone"),
+        ["Jack.Front"] = ("prise avant", "front jack"),
+        ["Jack.Rear"] = ("prise arrière", "rear jack"),
         ["Usb.ConnectedReceiver"] = ("Connecté · récepteur sans fil", "Connected · wireless receiver"),
 
         // ── Alimentation ─────────────────────────────────────────────────────────────────────

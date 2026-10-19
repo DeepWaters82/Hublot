@@ -115,10 +115,6 @@ paramètres) et *Fermer*.
   sourdine) au lieu d'apparaître en double ; les doublons déjà présents disparaissent au lancement.
 - **Dongles Logitech** : au branchement du récepteur, c'est la carte de l'appareil relié (nom, batterie)
   qui s'affiche ; celle du récepteur (« récepteur sans fil ») seulement si aucun appareil ne s'annonce.
-- **Prise audio** (module, activé par défaut) : popup au branchement / débranchement d'un casque, d'écouteurs
-  ou d'un micro sur la prise jack, si le pilote audio le signale (Realtek…) ; un casque à micro donne une
-  seule carte. Les casques Bluetooth et USB passent par leurs propres modules.
-  Diagnostic : `Hublot.exe --audio fichier.txt` liste les sorties et entrées audio et leur état.
 
 ## Paramètres
 

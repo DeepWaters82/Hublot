@@ -44,6 +44,9 @@ internal static unsafe partial class CoreAudio
     public readonly record struct Endpoint(string Name, string Adapter, bool Render, string Bus);
 
     private static Action<string, uint>? s_stateChanged;
+
+    /// <summary>Diagnostic : propriété modifiée sur un point de terminaison (identifiant, format, numéro).</summary>
+    public static Action<string, Guid, uint>? PropertyChanged { get; set; }
     private static nint s_enumerator, s_client;
 
     private static nint* Methods(nint unknown) => *(nint**)unknown;
@@ -169,6 +172,60 @@ internal static unsafe partial class CoreAudio
         }
     }
 
+    private static readonly Guid IidDeviceTopology = new("2A07407E-6497-4A18-9787-32F79BD0D98F");
+    private static readonly Guid IidPart = new("AE2DE0E4-5BCA-4F2D-AA46-5D13F8FDB3A9");
+    private static readonly Guid IidJackDescription = new("4509F757-2D46-4637-8E62-CE7DB944F57B");
+
+    /// <summary>
+    /// Prise physique (KSJACK_DESCRIPTION) : couleur (COLORREF), type de connecteur (EPcxConnectionType : 1 = 3,5 mm,
+    /// 2 = 6,35 mm, 7 = autre analogique, 11 = combinée ; 6 = numérique, HDMI…), emplacement (EPcxGeoLocation :
+    /// 1 = arrière, 2 = avant…), branchée ou non.
+    /// </summary>
+    public readonly record struct Jack(int Index, uint Color, int Connection, int Location, bool Connected);
+
+    /// <summary>
+    /// Prises du point de terminaison, lues sur la topologie de l'adaptateur : point de terminaison → son connecteur →
+    /// le connecteur de l'adaptateur relié → IKsJackDescription. Null si le pilote ne les décrit pas (ou absent).
+    /// </summary>
+    public static List<Jack>? Jacks(string id)
+    {
+        var enumerator = s_enumerator;
+        if (enumerator == 0) return null;
+        nint device = 0, topology = 0, connector = 0, other = 0, part = 0, jacks = 0;
+        try
+        {
+            fixed (char* p = id)
+                if (((delegate* unmanaged[Stdcall]<nint, char*, nint*, int>)Methods(enumerator)[5])(enumerator, p, &device) != 0) return null;
+            var iid = IidDeviceTopology;
+            // IMMDevice::Activate (méthode 3)
+            if (((delegate* unmanaged[Stdcall]<nint, Guid*, uint, void*, nint*, int>)Methods(device)[3])(device, &iid, ClsctxAll, null, &topology) != 0) return null;
+            // IDeviceTopology::GetConnector (4), IConnector::GetConnectedTo (8)
+            if (((delegate* unmanaged[Stdcall]<nint, uint, nint*, int>)Methods(topology)[4])(topology, 0, &connector) != 0) return null;
+            if (((delegate* unmanaged[Stdcall]<nint, nint*, int>)Methods(connector)[8])(connector, &other) != 0) return null;
+            iid = IidPart;
+            if (((delegate* unmanaged[Stdcall]<nint, Guid*, nint*, int>)Methods(other)[0])(other, &iid, &part) != 0) return null;
+            iid = IidJackDescription;
+            // IPart::Activate (méthode 13), CLSCTX_INPROC_SERVER
+            if (((delegate* unmanaged[Stdcall]<nint, uint, Guid*, nint*, int>)Methods(part)[13])(part, 1, &iid, &jacks) != 0) return null;
+            uint count;
+            // IKsJackDescription::GetJackCount (3), GetJackDescription (4)
+            if (((delegate* unmanaged[Stdcall]<nint, uint*, int>)Methods(jacks)[3])(jacks, &count) != 0) return null;
+            var result = new List<Jack>((int)count);
+            var d = stackalloc int[7]; // ChannelMapping, Color, ConnectionType, GeoLocation, GenLocation, PortConnection, IsConnected
+            for (uint i = 0; i < count; i++)
+            {
+                if (((delegate* unmanaged[Stdcall]<nint, uint, int*, int>)Methods(jacks)[4])(jacks, i, d) != 0) continue;
+                result.Add(new Jack((int)i, (uint)d[1], d[2], d[3], d[6] != 0));
+            }
+            return result;
+        }
+        finally
+        {
+            foreach (var unknown in new[] { jacks, part, other, connector, topology, device })
+                if (unknown != 0) Release(unknown);
+        }
+    }
+
     private static string? ReadString(nint store, Guid format, uint pid)
     {
         // PROPERTYKEY { GUID fmtid; DWORD pid; } ; PROPVARIANT : 24 octets en 64 bits, valeur à l'offset 8.
@@ -243,5 +300,15 @@ internal static unsafe partial class CoreAudio
     private static int OnDefaultDeviceChanged(nint self, int flow, int role, char* id) => 0;
 
     [UnmanagedCallersOnly]
-    private static int OnPropertyValueChanged(nint self, char* id, nint key) => 0;
+    private static int OnPropertyValueChanged(nint self, char* id, nint key)
+    {
+        try
+        {
+            if (id != null && key != 0 && PropertyChanged is { } changed) changed(new string(id), *(Guid*)key, *(uint*)(key + 16));
+        }
+        catch (Exception)
+        {
+        }
+        return 0;
+    }
 }

@@ -19,7 +19,6 @@ on or off.
 | **Now playing** | Cover, title and artist on every new track, with previous / play-pause / next, a clickable progress bar, colors taken from the album art and a keyboard shortcut to keep it on screen. Drag the player to any corner or screen. By default only the major music platforms (Spotify, Deezer, Apple Music, YouTube Music…) trigger it. |
 | **USB devices** | Name and state of USB devices; free and used space for drives. |
 | **Displays** | Real name, connection (HDMI, DisplayPort, VGA, USB-C…) and resolution of a display when it is plugged in or unplugged. |
-| **Audio jack** | Headphones, earphones or a microphone plugged into or unplugged from the jack (when the audio driver reports it). |
 | **Power** | PC name and battery level when a laptop is plugged in or unplugged, charge-level and low-battery alerts. |
 
 <p>
@@ -27,7 +26,6 @@ on or off.
   <img src="docs/screenshots/usb-storage.png" width="400" alt="USB drive card">
   <img src="docs/screenshots/display.png" width="400" alt="Display card">
   <img src="docs/screenshots/power.png" width="400" alt="Power card">
-  <img src="docs/screenshots/audio-jack.png" width="400" alt="Audio jack card">
 </p>
 
 Right-click any popup to open its settings. Hovering the tray icon shows every connected device and what's playing in a single card. Popups follow

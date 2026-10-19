@@ -52,11 +52,33 @@ internal static class Program
             {
                 foreach (var (id, state) in Interop.CoreAudio.States())
                     if (Interop.CoreAudio.Describe(id) is { } e)
+                    {
                         lines.Add($"{state}\t{(e.Render ? "sortie" : "entrée")}\t{e.Name}\t{e.Adapter}\t{e.Bus}");
+                        foreach (var j in Interop.CoreAudio.Jacks(id) ?? [])
+                            lines.Add($"\tprise {j.Index} : couleur {j.Color:X6} type {j.Connection} emplacement {j.Location} branchée {j.Connected}");
+                    }
                 Interop.CoreAudio.Unsubscribe();
             }
             else lines.Add("API audio indisponible");
             File.WriteAllLines(args[1], lines);
+            return 0;
+        }
+
+        if (args.Length >= 3 && args[0] == "--audio-watch")
+        {
+            // --audio-watch FICHIER SECONDES : journal des signaux audio (états, propriétés) pendant le branchement d'une prise.
+            var path = args[1];
+            void Write(string line)
+            {
+                lock (path) File.AppendAllText(path, $"{DateTime.Now:HH:mm:ss.fff} {line}{Environment.NewLine}");
+            }
+            // Le module lui-même, avec un hôte qui écrit les popups au lieu de les afficher (journal dans le même fichier).
+            Log.Enable(path);
+            var module = new Modules.Audio.JackModule();
+            module.Start(new Modules.WatchHost(card => Write($"POPUP {((Modules.Audio.JackCard)card).State.Title} : {((Modules.Audio.JackCard)card).State.StatusText}")));
+            Thread.Sleep(TimeSpan.FromSeconds(int.TryParse(args[2], out int s) ? s : 120));
+            module.Stop();
+            Write("fin");
             return 0;
         }
 

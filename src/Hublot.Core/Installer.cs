@@ -54,6 +54,7 @@ internal static class Installer
         TryDelete(OldMenuShortcut);
         Native.CreateShortcut(MenuShortcut, SettingsPath, "Hublot");
         Native.SetStartup(startWithWindows, ServicePath);
+        Native.RefreshShellIcons(ServicePath, SettingsPath, MenuShortcut);
 
         progress(L.T("Setup.Register"));
         using (var key = Registry.CurrentUser.CreateSubKey(UninstallKey))

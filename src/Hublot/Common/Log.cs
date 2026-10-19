@@ -9,11 +9,12 @@ internal static class Log
     private static readonly object s_lock = new();
     private static string? s_path;
 
-    public static void Enable()
+    /// <summary>Journal dans log.txt du dossier de données, ou dans <paramref name="path"/> (diagnostics).</summary>
+    public static void Enable(string? path = null)
     {
         var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Hublot");
-        Directory.CreateDirectory(dir);
-        s_path = Path.Combine(dir, "log.txt");
+        if (path is null) Directory.CreateDirectory(dir);
+        s_path = path ?? Path.Combine(dir, "log.txt");
     }
 
     public static void Write(string message)

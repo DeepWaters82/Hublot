@@ -251,7 +251,18 @@ src/Hublot/
 - Hublot Core : barre de sélection du menu = une seule `NavPill` sur un `Canvas` superposé, animée par
   `CompositionTarget.Rendering` (extrémité de tête puis de queue, 350 ms), comme NavigationView.
 
-## Module « Prise audio » (3.7.0)
+## Module « Prise audio » (3.7.0, mis de côté en 3.7.2)
+
+**Désactivé** : retiré de `App._modules`, tuile, entrée de navigation et page masquées dans Hublot Core
+(code, réglages et chaînes conservés). Test du 19/10/2026 sur un PC fixe Realtek (ALC623, prise combinée en
+façade, prises arrière réaffectables) : brancher ou débrancher redémarre tout l'audio (sortie et micro Realtek
+absents puis actifs, sorties HDMI NVIDIA qui clignotent pendant 1 à 4 s) ; sans rien à l'arrière, débrancher le
+casque retire la sortie et le micro jusqu'au prochain branchement. La relecture des prises (IKsJackDescription,
+`CoreAudio.Jacks`) a vu le débranchement en façade et le branchement / débranchement à l'arrière, mais pas le
+rebranchement en façade (relecture faite alors que les points de terminaison étaient encore absents ?). Pour
+reprendre : `Hublot.exe --audio-watch FICHIER SECONDES` fait tourner le module hors service (`Modules/WatchHost`)
+et journalise relectures et popups ; `--audio FICHIER` liste points de terminaison et prises.
+
 
 - `Interop/CoreAudio.cs` : MMDevice API par la table de méthodes ; objet `IMMNotificationClient` fait main
   (vtable de pointeurs `[UnmanagedCallersOnly]`, jamais libéré). `Subscribe` sur un thread du pool

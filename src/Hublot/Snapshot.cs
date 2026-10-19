@@ -32,7 +32,7 @@ internal static class Snapshot
             new PowerCard(new PowerState("Laptop-PC", false, 18, false, 2 * 3600 + 20 * 60)),
             new PowerCard(new PowerState("Laptop-PC", true, 80, true, null, PowerReason.LevelReached)),
             new DisplayCard(new DisplayInfo("p", "", "DELL U2720Q", "HDMI", 2560, 1440, 60, false, 0, 0), connected: true),
-            new JackCard(new JackState(L.T("Jack.Headphones"), "Realtek(R) Audio", true, true, true)),
+            new JackCard(new JackState("", "Realtek(R) Audio", true, true, true, 2)),
             new HoverCard(
             [
                 new MediaRow(media, (_, _) => { }),

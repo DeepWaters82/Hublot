@@ -4,8 +4,11 @@ using Hublot.Shell;
 
 namespace Hublot.Modules.Audio;
 
-/// <summary>Ce que la carte affiche d'un branchement : description (« Casque »), adaptateur, sortie et / ou micro.</summary>
-internal sealed record JackState(string Name, string Adapter, bool Plugged, bool Output, bool Microphone)
+/// <summary>
+/// Ce que la carte affiche d'un branchement : description (« Casque »), adaptateur, sortie et / ou micro, emplacement
+/// de la prise (EPcxGeoLocation : 1 = arrière, 2 = avant ; 0 = inconnu).
+/// </summary>
+internal sealed record JackState(string Name, string Adapter, bool Plugged, bool Output, bool Microphone, int Location = 0)
 {
     public string Title => Name.Length > 0 ? Name : L.T(Output ? "Jack.Headphones" : "Jack.Microphone");
 
@@ -16,7 +19,8 @@ internal sealed record JackState(string Name, string Adapter, bool Plugged, bool
         {
             string text = L.T(Plugged ? "Jack.Plugged" : "Jack.Unplugged");
             if (Output && Microphone) text += " · " + L.T("Jack.WithMic");
-            if (Adapter.Length > 0) text += " · " + Adapter;
+            if (Location is 1 or 2) text += " · " + L.T(Location == 2 ? "Jack.Front" : "Jack.Rear");
+            else if (Adapter.Length > 0) text += " · " + Adapter;
             return text;
         }
     }

@@ -3,7 +3,6 @@ using System.Diagnostics;
 using Hublot.Common;
 using Hublot.Interop;
 using Hublot.Modules;
-using Hublot.Modules.Audio;
 using Hublot.Modules.Bluetooth;
 using Hublot.Modules.NowPlaying;
 using Hublot.Modules.Power;
@@ -24,7 +23,9 @@ internal sealed class App : IHost
     private readonly Popup _popup;
     private readonly ConcurrentQueue<Action> _work = new();
     /// <summary>Ordre d'affichage dans les listes : la lecture en cours d'abord, puis les appareils, puis les stockages USB.</summary>
-    private readonly Module[] _modules = [new NowPlayingModule(), new BluetoothModule(), new UsbModule(), new PowerModule(), new DisplayModule(), new JackModule()];
+    private readonly Module[] _modules = [new NowPlayingModule(), new BluetoothModule(), new UsbModule(), new PowerModule(), new DisplayModule()];
+    // Module « Prise audio » (JackModule) mis de côté en 3.7.2 : détection incomplète sur les Realtek à prises
+    // réaffectables. Code conservé ; diagnostic : Hublot.exe --audio / --audio-watch.
     private readonly HashSet<Module> _running = [];
     private Settings _settings;
     private Popup? _pinned;
@@ -456,7 +457,6 @@ internal sealed class App : IHost
             case 3: _popup.Show(usb[0]); break;
             case 4: _popup.Show(power[0]); break;
             case 5: ShowDisplays(); break;
-            case 6: _popup.Show(_modules.OfType<JackModule>().First().PreviewCards().First()); break;
             default: _popup.Show(bluetooth[0]); break;
         }
     }
