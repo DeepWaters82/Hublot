@@ -307,6 +307,11 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
 - **Manettes** (3.8.0) : `XboxSource` ne filtre plus `IsWireless` (une manette sur dongle 2,4 GHz se déclare filaire :
   GameSir VID 3537 « Contrôleur XBOX 360 pour Windows ») ; liaison `DeviceLink.Usb` (« · USB », pas de « batterie non
   communiquée ») ; avec beaucoup de dongles la manette existe dès le branchement du dongle. `Hublot.exe --gamepads FICHIER`.
+  3.8.1 : batterie lue seulement pour une manette sans fil (une filaire renvoie un rapport « pleine ») et ignorée si
+  `BatteryStatus.NotPresent`. Le module USB reconnaît les manettes (`UsbKind.Gamepad` : classes FF/5D Xbox 360,
+  FF/47 Xbox One, ou fonction HID « HID_DEVICE_SYSTEM_GAME » / UP:0001_U:0004-0005, enfants lus aussi pour un
+  périphérique HID) et n'affiche rien si la source Manettes est active (`GamepadsShownElsewhere`) : deux cartes à
+  70 ms d'écart (« Controller (Generic) » et « Contrôleur XBOX 360 pour Windows ») se remplaçaient au hasard.
 - **Journal** (3.8.0) : option `DiagnosticLog` (À propos) → `Log.Configure` au lancement et à chaque rechargement ;
   `--log` → `Log.Force` (prime sur l'option) ; 1 Mo au plus (`log.old.txt`).
 - **Page GitHub** : `HublotCore.exe --screenshot PAGE FICHIER en` (fenêtre hors écran, réglages par défaut,

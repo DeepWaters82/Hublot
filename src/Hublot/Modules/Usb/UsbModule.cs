@@ -193,6 +193,7 @@ internal sealed partial class UsbModule : Module
                     return;
                 }
                 Log.Write($"USB déconnecté : {device.Name}");
+                if (device.Kind == UsbKind.Gamepad && GamepadsShownElsewhere) return;
                 Notify(Describe(device, connected: false), connected: false);
             }
         }), null, FlapMs, Timeout.Infinite);
@@ -212,9 +213,10 @@ internal sealed partial class UsbModule : Module
                 name = node.Name;
             if (node.Properties.TryGetValue(CompatibleKey, out var ids) && ids is string[] list) classes.AddRange(list);
 
-            // Périphérique composite (clavier + souris, webcam + micro…) : le type se lit sur ses fonctions.
+            // Périphérique composite (clavier + souris, webcam + micro…) : le type se lit sur ses fonctions. HID aussi :
+            // une manette se reconnaît à sa fonction HID (« HID_DEVICE_SYSTEM_GAME »), pas à sa classe USB.
             bool composite = classes.Count == 0 || classes.Any(c => c.Contains("DevClass_00", StringComparison.OrdinalIgnoreCase)
-                || c.Contains("COMPOSITE", StringComparison.OrdinalIgnoreCase));
+                || c.Contains("COMPOSITE", StringComparison.OrdinalIgnoreCase) || c.Contains("Class_03", StringComparison.OrdinalIgnoreCase));
             if (composite && device.Container is Guid container && container != ComputerContainer)
             {
                 var children = await DeviceInformation.FindAllAsync($"System.Devices.ContainerId:=\"{{{container}}}\"",
@@ -247,6 +249,11 @@ internal sealed partial class UsbModule : Module
                 // Si aucun volume n'est monté d'ici là, la carte l'indiquera.
                 device.StorageTimeout = new Timer(_ => _host?.Post(() => Refresh(device)), null, StorageWaitMs, Timeout.Infinite);
             }
+            if (kind == UsbKind.Gamepad && GamepadsShownElsewhere)
+            {
+                Log.Write($"Manette USB : carte du module Appareils sans fil, pas de carte USB ({name})");
+                return;
+            }
             if (kind == UsbKind.Receiver && IsLogitechReceiver(device.InstanceId) && Host.Settings is { ModuleBluetooth: true, LogitechReceivers: true })
             {
                 // L'appareil relié (souris, clavier…) s'annonce par sa propre carte, avec son nom et sa batterie : celle
@@ -257,6 +264,12 @@ internal sealed partial class UsbModule : Module
             Notify(Describe(device, connected: true), connected: true);
         });
     }
+
+    /// <summary>
+    /// Manettes : le module « Appareils sans fil » (source Manettes, Windows.Gaming.Input) les affiche avec leur vrai nom
+    /// (« Contrôleur XBOX 360 pour Windows » plutôt que « Controller ») ; deux cartes à 70 ms d'écart se remplaçaient.
+    /// </summary>
+    private bool GamepadsShownElsewhere => Host.Settings is { ModuleBluetooth: true, XboxControllers: true };
 
     private void AnnounceReceiver(Device device)
     {
@@ -297,10 +310,14 @@ internal sealed partial class UsbModule : Module
             found.Add($"{m.Groups[1].Value.ToUpperInvariant()}/{m.Groups[2].Value}/{m.Groups[3].Value}");
         bool Has(string cls) => found.Any(f => f.StartsWith(cls + "/", StringComparison.Ordinal));
         bool hub = Has("09");
+        // Manette : Xbox 360 (XUSB, FF/5D), Xbox One (GIP, FF/47), ou fonction HID « jeu » (manette, joystick).
+        bool gamepad = Has("FF/5D") || Has("FF/47") || ids.Any(id => id.Contains("HID_DEVICE_SYSTEM_GAME", StringComparison.OrdinalIgnoreCase)
+            || id.Contains("HID_DEVICE_UP:0001_U:0004", StringComparison.OrdinalIgnoreCase) || id.Contains("HID_DEVICE_UP:0001_U:0005", StringComparison.OrdinalIgnoreCase));
         UsbKind kind =
             Has("08") ? UsbKind.Storage :
             Has("0E") ? UsbKind.Webcam :
             Has("01") ? UsbKind.Audio :
+            gamepad ? UsbKind.Gamepad :
             found.Contains("03/01/01") ? UsbKind.Keyboard :
             found.Contains("03/01/02") ? UsbKind.Mouse :
             Has("06") ? UsbKind.Phone :

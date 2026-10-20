@@ -96,7 +96,9 @@ internal sealed class XboxSource : DeviceSource
         bool? charging = null;
         try
         {
-            var report = controller.TryGetBatteryReport();
+            // Manette filaire (câble, dongle 2,4 GHz) : Windows renvoie un rapport « pleine » sans batterie réelle.
+            var report = controller.IsWireless ? controller.TryGetBatteryReport() : null;
+            if (report?.Status == Windows.System.Power.BatteryStatus.NotPresent) report = null;
             if (report is not null) charging = report.Status == Windows.System.Power.BatteryStatus.Charging;
             if (report?.FullChargeCapacityInMilliwattHours is int full && full > 0
                 && report.RemainingCapacityInMilliwattHours is int remaining)
