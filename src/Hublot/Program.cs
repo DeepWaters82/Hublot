@@ -21,7 +21,7 @@ internal static class Program
     private static int Main(string[] args)
     {
         Settings.MigrateFromPreviousName(); // avant tout accès au dossier de données (le journal le crée)
-        if (args.Contains("--log")) Log.Enable();
+        if (args.Contains("--log")) Log.Force();
 
         if (args.Length >= 2 && args[0] is "--snapshot" or "--icons" or "--write-ico" or "--store-assets")
         {
@@ -61,6 +61,19 @@ internal static class Program
             }
             else lines.Add("API audio indisponible");
             File.WriteAllLines(args[1], lines);
+            return 0;
+        }
+
+        if (args.Length >= 2 && args[0] == "--gamepads")
+        {
+            // --gamepads FICHIER : manettes vues par Windows.Gaming.Input (la liste se remplit après quelques instants).
+            var seen = new List<string>();
+            Windows.Gaming.Input.RawGameController.RawGameControllerAdded += (_, c) =>
+            {
+                lock (seen) seen.Add($"{c.DisplayName}\tsans fil={c.IsWireless}\tVID={c.HardwareVendorId:X4} PID={c.HardwareProductId:X4}\t{c.NonRoamableId}");
+            };
+            Thread.Sleep(2500);
+            lock (seen) File.WriteAllLines(args[1], seen.Count > 0 ? seen : ["aucune manette"]);
             return 0;
         }
 

@@ -208,6 +208,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     public bool DisplayNotifyDisconnect { get => _s.DisplayNotifyDisconnect; set => Set(() => _s.DisplayNotifyDisconnect = value, preview: false); }
     public bool QuietInputSleep { get => _s.QuietInputSleep; set => Set(() => _s.QuietInputSleep = value, preview: false); }
     public bool QuietMouseSleep { get => _s.QuietMouseSleep; set => Set(() => _s.QuietMouseSleep = value, preview: false); }
+    public bool DiagnosticLog { get => _s.DiagnosticLog; set => Set(() => _s.DiagnosticLog = value, preview: false); }
     public bool ModulePower { get => _s.ModulePower; set => Set(() => _s.ModulePower = value, preview: false); }
     public bool ModuleAudio { get => _s.ModuleAudio; set => Set(() => _s.ModuleAudio = value, preview: false); }
     public bool AudioNotifyPlugged { get => _s.AudioNotifyPlugged; set => Set(() => _s.AudioNotifyPlugged = value, preview: false); }
@@ -285,7 +286,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         foreach (var d in DeviceStore.LoadDevices().OrderByDescending(d => d.Connected).ThenByDescending(d => d.LastSeen))
         {
             var item = new DeviceItem(d, !_s.MutedDevices.Contains(d.Key), SetMuted);
-            (d.Link == DeviceLink.Dongle ? DongleDevices : BluetoothDevices).Add(item);
+            (d.Link != DeviceLink.Bluetooth ? DongleDevices : BluetoothDevices).Add(item);
         }
         OnPropertyChanged(nameof(HasBluetoothDevices));
         OnPropertyChanged(nameof(HasDongleDevices));

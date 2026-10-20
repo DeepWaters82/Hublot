@@ -110,9 +110,11 @@ internal sealed class DeviceCard(DeviceState state, Action? onClick) : CardConte
         if (p.Connected && p.Reason == NotifyReason.None)
         {
             if (p.Charging == true) status += " · " + L.T("Device.Charging");
-            else if (p.BatteryState == BatteryState.Unavailable) status += " · " + L.T("Device.BatteryUnknown");
+            // Manette USB (dongle 2,4 GHz, câble) : jamais de batterie communiquée, inutile de le dire.
+            else if (p.BatteryState == BatteryState.Unavailable && p.Link != DeviceLink.Usb) status += " · " + L.T("Device.BatteryUnknown");
         }
-        if (showLink && p.Key != "none") status += p.Link == DeviceLink.Dongle ? " · " + L.T("Device.Dongle") : " · Bluetooth";
+        if (showLink && p.Key != "none")
+            status += " · " + p.Link switch { DeviceLink.Dongle => L.T("Device.Dongle"), DeviceLink.Usb => "USB", _ => "Bluetooth" };
         return status;
     }
 

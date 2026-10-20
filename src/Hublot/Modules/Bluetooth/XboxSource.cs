@@ -4,9 +4,11 @@ using Windows.Gaming.Input;
 namespace Hublot.Modules.Bluetooth;
 
 /// <summary>
-/// Manettes sans fil (Xbox Wireless Adapter, etc.) via Windows.Gaming.Input. Événementiel :
-/// ajout / retrait de contrôleur. Les manettes Bluetooth apparaissent aussi ici ; le doublon
-/// avec la source Bluetooth est filtré par l'application (même nom, même état).
+/// Manettes via Windows.Gaming.Input. Événementiel : ajout / retrait de contrôleur. Toutes les manettes : celles
+/// de l'adaptateur Xbox sans fil (et Bluetooth) se déclarent sans fil ; celles d'un dongle 2,4 GHz (8BitDo, F710,
+/// PowerA…) se déclarent filaires, comme une manette à câble (liaison « USB », Windows ne les distingue pas). Avec
+/// beaucoup de dongles, la manette existe dès le branchement du dongle, allumée ou non. Les manettes Bluetooth
+/// apparaissent aussi dans la source Bluetooth ; le doublon est filtré par le module (même nom, même état).
 /// </summary>
 internal sealed class XboxSource : DeviceSource
 {
@@ -25,7 +27,6 @@ internal sealed class XboxSource : DeviceSource
         // Windows rejoue « Added » pour les manettes déjà présentes : elles forment l'état initial.
         foreach (var controller in RawGameController.RawGameControllers)
         {
-            if (!controller.IsWireless) continue;
             var state = Describe(controller, connected: true);
             lock (_lock)
             {
@@ -62,7 +63,6 @@ internal sealed class XboxSource : DeviceSource
 
     private void OnAdded(object? sender, RawGameController controller)
     {
-        if (!controller.IsWireless) return;
         var state = Describe(controller, connected: true);
         lock (_lock)
         {
@@ -81,7 +81,7 @@ internal sealed class XboxSource : DeviceSource
         lock (_lock)
         {
             if (!_controllers.TryGetValue(key, out var known)) return;
-            state = DeviceState.Disconnected(key, known.State.Name, DeviceKind.Gamepad, known.State.Battery, DeviceLink.Dongle);
+            state = DeviceState.Disconnected(key, known.State.Name, DeviceKind.Gamepad, known.State.Battery, known.State.Link);
             _controllers[key] = (state, known.ConnectedAt);
         }
         Log.Write($"Manette déconnectée : {state.Name}");
@@ -108,6 +108,6 @@ internal sealed class XboxSource : DeviceSource
         }
         string name = string.IsNullOrWhiteSpace(controller.DisplayName) ? L.T("Device.Controller") : controller.DisplayName;
         return new DeviceState(KeyOf(controller), name, connected, DeviceKind.Gamepad, battery,
-            battery is null ? BatteryState.Unavailable : BatteryState.Known, DeviceLink.Dongle, charging);
+            battery is null ? BatteryState.Unavailable : BatteryState.Known, controller.IsWireless ? DeviceLink.Dongle : DeviceLink.Usb, charging);
     }
 }

@@ -40,6 +40,8 @@ public sealed class Settings
     public AppLanguage Language { get; set; } = AppLanguage.Auto;
     /// <summary>Version classique : recherche quotidienne d'une nouvelle version sur GitHub.</summary>
     public bool CheckUpdates { get; set; } = true;
+    /// <summary>Journal de diagnostic (log.txt du dossier de données), pour comprendre un problème.</summary>
+    public bool DiagnosticLog { get; set; }
     public PopupPosition Position { get; set; } = PopupPosition.BottomCenter;
     public PopupMonitor Monitor { get; set; } = PopupMonitor.Primary;
     /// <summary>Écran choisi (<see cref="DisplayInfo.Path"/>, stable d'un branchement à l'autre) ; absent → écran principal.</summary>
@@ -122,8 +124,11 @@ public sealed class Settings
     // Module « Alimentation »
     public bool PowerNotifyPlugged { get; set; } = true;
     public bool PowerNotifyUnplugged { get; set; } = true;
-    /// <summary>Popup quand la charge atteint <see cref="PowerLevel"/> sur secteur.</summary>
-    public bool PowerNotifyLevel { get; set; } = true;
+    /// <summary>
+    /// Popup quand la charge atteint <see cref="PowerLevel"/> sur secteur. Désactivé par défaut depuis 3.8.0 : une
+    /// popup à chaque recharge n'intéresse que ceux qui ménagent leur batterie.
+    /// </summary>
+    public bool PowerNotifyLevel { get; set; }
     public int PowerLevel { get; set; } = 80;
     /// <summary>Popup quand la charge descend à <see cref="PowerLowLevel"/> sur batterie.</summary>
     public bool PowerNotifyLow { get; set; }
@@ -134,8 +139,11 @@ public sealed class Settings
     // Module « Périphériques USB »
     public bool UsbNotifyConnect { get; set; } = true;
     public bool UsbNotifyDisconnect { get; set; } = true;
-    /// <summary>Popups uniquement pour les stockages (clés, disques, cartes mémoire).</summary>
-    public bool UsbStorageOnly { get; set; }
+    /// <summary>
+    /// Popups uniquement pour les stockages (clés, disques, cartes mémoire). Activé par défaut depuis 3.8.0 : souris,
+    /// hubs, webcams ou chargeurs ne sont pas des événements qu'on veut voir à chaque branchement.
+    /// </summary>
+    public bool UsbStorageOnly { get; set; } = true;
     /// <summary>Pas de popup pour un « retrait en toute sécurité » (Windows affiche déjà le sien).</summary>
     public bool UsbIgnoreSafeRemoval { get; set; } = true;
     /// <summary>Popups USB aussi par-dessus une application en plein écran (désactivé par défaut depuis 3.3.0).</summary>
@@ -181,12 +189,13 @@ public sealed class Settings
     /// <summary>Clic sur l'icône de l'application source : l'ouvre (premier plan).</summary>
     public bool MediaOpenAppOnClick { get; set; } = true;
     /// <summary>
-    /// Raccourci du lecteur permanent : Ctrl + 0 du pavé numérique par défaut depuis 3.7.0 (0x60 = VK_NUMPAD0 ; le 0
-    /// de la rangée du haut remet le zoom à 100 % dans les navigateurs, un raccourci global le leur prendrait).
+    /// Raccourci du lecteur permanent : Ctrl + Alt + P par défaut (3.8.0). Ctrl + 0, du pavé numérique ou non, remet le
+    /// zoom à 100 % dans les navigateurs (un raccourci global le leur prendrait), et beaucoup de portables n'ont pas
+    /// de pavé numérique. P comme « player ».
     /// </summary>
     public bool MediaPinnedHotkeyEnabled { get; set; } = true;
-    public int MediaPinnedHotkeyModifiers { get; set; } = ModControl;
-    public int MediaPinnedHotkeyKey { get; set; } = 0x60;
+    public int MediaPinnedHotkeyModifiers { get; set; } = ModControl | ModAlt;
+    public int MediaPinnedHotkeyKey { get; set; } = 0x50;
     /// <summary>Applications (AppUserModelId) dont les médias ne s'affichent jamais.</summary>
     /// Par défaut : Microsoft Teams, qui déclare ses appels et réunions comme des médias.
     public HashSet<string> MediaExcludedApps { get; } = new(StringComparer.OrdinalIgnoreCase) { "MSTeams_8wekyb3d8bbwe!MSTeams" };
@@ -301,6 +310,7 @@ public sealed class Settings
 
         Add(nameof(Language), Language);
         Add(nameof(CheckUpdates), CheckUpdates);
+        Add(nameof(DiagnosticLog), DiagnosticLog);
         Add(nameof(Position), Position);
         Add(nameof(Monitor), Monitor);
         Add(nameof(MonitorDevice), MonitorDevice);
@@ -389,6 +399,7 @@ public sealed class Settings
         {
             case nameof(Language): Language = ParseEnum(value, Language); break;
             case nameof(CheckUpdates): CheckUpdates = ParseBool(value, CheckUpdates); break;
+            case nameof(DiagnosticLog): DiagnosticLog = ParseBool(value, DiagnosticLog); break;
             case nameof(Position): Position = ParseEnum(value, Position); break;
             case nameof(Monitor): Monitor = ParseEnum(value, Monitor); break;
             case nameof(MonitorDevice): MonitorDevice = value; break;

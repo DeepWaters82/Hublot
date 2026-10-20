@@ -301,7 +301,14 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
   des tâches sombre, Accent → Dark1 sur barre claire), traits blancs ou sombres selon la luminance ; redessinée
   à chaque `ImmersiveColorSet`. Exécutables et logos du Store : bleu Windows (`Draw(size)`).
 - **Défauts** de « Lecture en cours » : tout activé sauf « aussi à la mise en pause » ; raccourci du lecteur
-  permanent Ctrl + 0 du pavé numérique (0x60 ; le 0 du haut est le zoom 100 % des navigateurs).
+  permanent Ctrl + 0 du pavé numérique (0x60) en 3.7.0, puis Ctrl + Alt + P en 3.8.0 (Ctrl + 0, pavé ou non, est le
+  zoom 100 % des navigateurs, et beaucoup de portables n'ont pas de pavé numérique).
+- **Défauts 3.8.0** (revue UX) : USB stockages uniquement ; « niveau de charge atteint » (Alimentation) désactivé.
+- **Manettes** (3.8.0) : `XboxSource` ne filtre plus `IsWireless` (une manette sur dongle 2,4 GHz se déclare filaire :
+  GameSir VID 3537 « Contrôleur XBOX 360 pour Windows ») ; liaison `DeviceLink.Usb` (« · USB », pas de « batterie non
+  communiquée ») ; avec beaucoup de dongles la manette existe dès le branchement du dongle. `Hublot.exe --gamepads FICHIER`.
+- **Journal** (3.8.0) : option `DiagnosticLog` (À propos) → `Log.Configure` au lancement et à chaque rechargement ;
+  `--log` → `Log.Force` (prime sur l'option) ; 1 Mo au plus (`log.old.txt`).
 - **Page GitHub** : `HublotCore.exe --screenshot PAGE FICHIER en` (fenêtre hors écran, réglages par défaut,
   applications d'exemple, rien n'est enregistré : `SettingsViewModel.Demo`) → `now-playing-settings.png` ;
   `Hublot.exe --snapshot DOSSIER 1.5 en` → `sombre-12.png` = `audio-jack.png` (et `album-colors.png`, planche

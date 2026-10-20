@@ -15,7 +15,7 @@ on or off.
 
 | Module | What it shows |
 |---|---|
-| **Wireless devices** | Name, state and battery of Bluetooth devices, Logitech receivers (Unifying, Bolt, Lightspeed) and Xbox controllers when they connect or disconnect; low battery, charging and charge-level alerts. |
+| **Wireless devices** | Name, state and battery of Bluetooth devices, Logitech receivers (Unifying, Bolt, Lightspeed) and game controllers (Xbox, or on a 2.4 GHz dongle) when they connect or disconnect; low battery, charging and charge-level alerts. |
 | **Now playing** | Cover, title and artist on every new track, with previous / play-pause / next, a clickable progress bar, colors taken from the album art and a keyboard shortcut to keep it on screen. Drag the player to any corner or screen. By default only the major music platforms (Spotify, Deezer, Apple Music, YouTube Music…) trigger it. |
 | **USB devices** | Name and state of USB devices; free and used space for drives. |
 | **Displays** | Real name, connection (HDMI, DisplayPort, VGA, USB-C…) and resolution of a display when it is plugged in or unplugged. |
@@ -50,7 +50,7 @@ accent color.
 ## Everything is configurable
 
 Each module has its own settings page. Here is the *Now playing* page, with its defaults: which apps
-trigger the player, when it appears, the always-on player shortcut (*Ctrl + Num 0*), progress bar,
+trigger the player, when it appears, the always-on player shortcut (*Ctrl + Alt + P*), progress bar,
 album art colors and per-app rules.
 
 <p><img src="docs/screenshots/now-playing-settings.png" width="600" alt="Now playing settings page"></p>

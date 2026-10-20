@@ -5,7 +5,7 @@ Des modules visuels pour Windows, au plus près du **Fluent Design** de Windows 
 
 | Module | Ce qu'il affiche |
 |---|---|
-| **Appareils sans fil** | Nom, état et batterie des appareils Bluetooth, des récepteurs USB Logitech et des manettes Xbox, à chaque connexion / déconnexion ; alertes de batterie. |
+| **Appareils sans fil** | Nom, état et batterie des appareils Bluetooth, des récepteurs USB Logitech et des manettes (Xbox, ou sur dongle 2,4 GHz), à chaque connexion / déconnexion ; alertes de batterie. |
 | **Lecture en cours** | Pochette, titre, artiste et application à chaque nouveau morceau, avec précédent, lecture / pause et suivant. |
 | **Périphériques USB** | Nom et état de chaque périphérique USB branché / débranché ; pour les clés, disques et cartes mémoire, espace utilisé et restant avec une jauge. |
 | **Écrans** | Nom réel, connectique (HDMI, DisplayPort, VGA, USB-C…) et résolution d'un écran branché ou débranché. |
@@ -58,7 +58,7 @@ paramètres) et *Fermer*.
   reprise, aussi à la mise en pause), toujours au même emplacement. On le **déplace à la souris** : il suit
   le pointeur, y compris vers un autre écran, puis se cale sur l'emplacement le plus proche (coins, haut ou
   bas au centre) ; l'emplacement et l'écran sont retenus. C'est le seul moyen de le placer.
-- **Lecteur permanent** : le **raccourci clavier** (Ctrl + 0 du pavé numérique par défaut) garde le lecteur affiché en
+- **Lecteur permanent** : le **raccourci clavier** (Ctrl + Alt + P par défaut) garde le lecteur affiché en
   permanence, ou le masque ; Hublot s'en souvient, même après un redémarrage. Il est effacé en fondu pendant
   un plein écran ; un clic dessus le ferme jusqu'au titre suivant, ou le masque comme le raccourci (option
   « Le clic masque jusqu'au raccourci »). Sans raccourci actif, pas de lecteur permanent.
@@ -151,4 +151,6 @@ tâches, 0 % de CPU. Tout est événementiel ; un module désactivé ne démarre
 
 ## Diagnostic
 
-`Hublot.exe --log` écrit un journal dans `%LocalAppData%\Hublot\log.txt`.
+Option *Journal de diagnostic* (Paramètres › À propos), ou `Hublot.exe --log` : journal dans
+`%LocalAppData%\Hublot\log.txt` (1 Mo au plus, l'ancien devient `log.old.txt`). Autres diagnostics :
+`Hublot.exe --gamepads fichier.txt` (manettes vues par Windows), `--audio fichier.txt` (sorties et entrées audio).

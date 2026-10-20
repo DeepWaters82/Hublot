@@ -37,6 +37,7 @@ internal sealed class App : IHost
     public App()
     {
         _settings = Settings.Load();
+        Log.Configure(_settings.DiagnosticLog);
         _tray = new TrayIcon();
         _popup = new Popup(_settings);
 
@@ -474,6 +475,7 @@ internal sealed class App : IHost
     {
         var previous = _settings;
         _settings = Settings.Load();
+        Log.Configure(_settings.DiagnosticLog);
         _popup.ApplySettings(_settings);
         if (_pinned is not null)
         {

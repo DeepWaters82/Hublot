@@ -876,6 +876,11 @@
                                 </DockPanel>
                             </Border>
                         </StackPanel>
+
+                        <TextBlock Text="{local:Tr Diag.Section}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xEBE8;" Header="{local:Tr Diag.Log}" Description="{local:Tr Diag.LogDescription}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding DiagnosticLog}" />
+                        </local:SettingsCard>
                     </StackPanel>
                 </Grid>
             </ScrollViewer>

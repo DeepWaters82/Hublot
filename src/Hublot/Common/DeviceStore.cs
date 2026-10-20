@@ -3,7 +3,8 @@ using System.IO;
 
 namespace Hublot.Common;
 
-public enum DeviceLink { Bluetooth, Dongle }
+/// <summary>Liaison : Bluetooth, récepteur USB (Logitech, adaptateur Xbox), ou USB (manette sur dongle 2,4 GHz ou câble : Windows ne les distingue pas).</summary>
+public enum DeviceLink { Bluetooth, Dongle, Usb }
 
 /// <summary>Appareil déjà vu par le service (liste « appareils » de l'utilitaire, sourdine).</summary>
 public sealed record KnownDevice(string Key, string Name, string Kind, DeviceLink Link, int? Battery, bool Connected,
