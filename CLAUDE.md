@@ -338,7 +338,8 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
 - `.\build-store.ps1` → `dist\Hublot-<version>.msix` (non signé : Partner Center signe). Contenu dans
   `obj\store\layout` : Hublot.exe (trimmé), HublotCore.exe **sans installateur embarqué**, Assets\ (générés
   par `Hublot.exe --store-assets`), AppxManifest.xml (modèle `store\AppxManifest.template.xml`, identité
-  `store\identity.ini` à remplir depuis Partner Center, version = celle des exe + « .0 »).
+  `store\identity.ini` = identité Partner Center : DeepWaterStudio.Hublot, éditeur CN=B8ABA198-59B1-43C9-8EAF-D0544874023D,
+  « DeepWaterStudio » ; version = celle des exe + « .0 »). Fiche du Store : `store\listing.md` ; confidentialité : `PRIVACY.md`.
 - Assemblage : `makeappx.exe` du SDK Windows ou du paquet NuGet `Microsoft.Windows.SDK.BuildTools`.
 - Deux applications : « Hublot » (HublotCore.exe, menu Démarrer) et « HublotService » (Hublot.exe,
   `AppListEntry="none"`, tâche de démarrage `HublotStartup` activée par défaut). `runFullTrust` seulement.
