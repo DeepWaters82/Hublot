@@ -18,6 +18,36 @@ internal static class Program
     /// pas par l'exécutable : un binaire qui s'inscrit lui-même dans la clé Run est pris pour
     /// une persistance malveillante par les antivirus d'entreprise.
     /// </summary>
+    /// <summary>Lancement depuis le menu Démarrer (activation « Launch »), et non par la tâche de démarrage ou un autre processus.</summary>
+    private static bool LaunchedFromStartMenu()
+    {
+        try
+        {
+            return Windows.ApplicationModel.AppInstance.GetActivatedEventArgs()?.Kind == Windows.ApplicationModel.Activation.ActivationKind.Launch;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>Paramètres (HublotCore.exe, à côté du service) ; une fenêtre déjà ouverte est simplement réactivée.</summary>
+    private static void OpenSettings()
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(Path.Combine(AppContext.BaseDirectory, "HublotCore.exe"))
+            {
+                UseShellExecute = true,
+                WorkingDirectory = AppContext.BaseDirectory,
+            })?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Ouverture des paramètres", ex);
+        }
+    }
+
     private static int Main(string[] args)
     {
         Settings.MigrateFromPreviousName(); // avant tout accès au dossier de données (le journal le crée)
@@ -95,7 +125,12 @@ internal static class Program
             return 0;
         }
 
+        // Paquet du Store : l'application du menu Démarrer est le service lui-même (le Store refuse une application
+        // sans entrée dans le menu) ; lancée par l'utilisateur, elle ouvre aussi les paramètres. Au démarrage de
+        // Windows (tâche de démarrage) ou lancée par les paramètres, rien de plus.
+        bool openSettings = AppPackage.IsPackaged && LaunchedFromStartMenu();
         using var mutex = new Mutex(true, @"Local\Hublot.SingleInstance", out bool first);
+        if (openSettings) OpenSettings();
         if (!first) return 0;
 
         GdiPlus.Startup();

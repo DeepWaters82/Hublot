@@ -341,8 +341,12 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
   `store\identity.ini` = identité Partner Center : DeepWaterStudio.Hublot, éditeur CN=B8ABA198-59B1-43C9-8EAF-D0544874023D,
   « DeepWaterStudio » ; version = celle des exe + « .0 »). Fiche du Store : `store\listing.md` ; confidentialité : `PRIVACY.md`.
 - Assemblage : `makeappx.exe` du SDK Windows ou du paquet NuGet `Microsoft.Windows.SDK.BuildTools`.
-- Deux applications : « Hublot » (HublotCore.exe, menu Démarrer) et « HublotService » (Hublot.exe,
-  `AppListEntry="none"`, tâche de démarrage `HublotStartup` activée par défaut). `runFullTrust` seulement.
+- Une seule application, « Hublot » = Hublot.exe (le service), avec la tâche de démarrage `HublotStartup` (activée
+  par défaut). Le Store refuse `AppListEntry="none"` (dérogation « HeadlessAppBypass » réservée) : d'où l'ancien
+  schéma à deux applications rejeté le 21/10/2026. Lancé depuis le menu Démarrer (`AppInstance.GetActivatedEventArgs`,
+  `ActivationKind.Launch`), le service ouvre aussi HublotCore.exe (`Program.OpenSettings`) ; par la tâche de
+  démarrage ou par les paramètres, non. `runFullTrust` seulement. Lancer `build.ps1` avant `build-store.ps1` :
+  build.ps1 vide dist\.
 - Comportements en paquet (`Common/AppPackage.cs`, `GetCurrentPackageFamilyName`) : démarrage avec Windows
   par `StartupTask` (pas de raccourci) ; ouvrir les paramètres lance le service s'il ne tourne pas ;
   « Ouvrir le dossier des paramètres » → `%LocalAppData%\Packages\<famille>\LocalCache\Local\Hublot`
