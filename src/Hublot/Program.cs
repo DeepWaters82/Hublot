@@ -63,7 +63,9 @@ internal static class Program
                     case "--snapshot":
                         // --snapshot DOSSIER [ÉCHELLE] [en|fr] : langue des cartes
                         if (args.Length > 3) L.Apply(args[3] == "en" ? AppLanguage.English : AppLanguage.French);
-                        Snapshot.Render(args[1], args.Length > 2 && float.TryParse(args[2], System.Globalization.CultureInfo.InvariantCulture, out var k) ? k : 1.5f);
+                        // --snapshot DOSSIER [ÉCHELLE] [en|fr] [alpha] : alpha = fond transparent (visuels du Store)
+                        Snapshot.Render(args[1], args.Length > 2 && float.TryParse(args[2], System.Globalization.CultureInfo.InvariantCulture, out var k) ? k : 1.5f,
+                            transparent: args.Contains("alpha"));
                         break;
                     case "--icons": TrayIconRenderer.RenderSheet(args[1]); break;
                     case "--store-assets": TrayIconRenderer.WriteStoreAssets(args[1]); break;

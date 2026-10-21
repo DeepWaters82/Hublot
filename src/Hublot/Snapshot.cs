@@ -14,7 +14,8 @@ namespace Hublot;
 /// <summary>Rendu hors écran des cartes de chaque module (clair / sombre), pour contrôler le design.</summary>
 internal static class Snapshot
 {
-    public static void Render(string directory, float scale = 1.5f)
+    /// <param name="transparent">Fond transparent autour des cartes (visuels du Store composés à part).</param>
+    public static void Render(string directory, float scale = 1.5f, bool transparent = false)
     {
         Directory.CreateDirectory(directory);
         var settings = new Settings();
@@ -56,7 +57,7 @@ internal static class Snapshot
                 PopupRenderer.DrawCard(canvas, card, theme, scale, 100);
                 cards[i].Begin(0, new AnimClock(false, 1));
                 cards[i].Draw(new CardContext(canvas, card, theme, scale, Stopwatch.GetTimestamp(), new AnimClock(false, 1), i == 0 ? 2 : i == 1 ? 1400 : -1, settings));
-                canvas.FlattenOnto(backdrop);
+                if (!transparent) canvas.FlattenOnto(backdrop);
                 canvas.SavePng(Path.Combine(directory, $"{name}-{i + 1}.png"));
             }
         }
@@ -130,7 +131,7 @@ internal static class Snapshot
             var probe = new MediaCard(media with { Timeline = new MediaTimeline(TimeSpan.Zero, TimeSpan.FromMinutes(3), DateTime.UtcNow) }, (_, _) => { });
             int w = (int)MathF.Round(probe.Width * scale), h = (int)MathF.Round(probe.Height * scale);
             using var board = new Canvas(2 * (w + m) + m, tracks.Length * (h + m) + m);
-            board.Fill(0xFF1B2633);
+            if (!transparent) board.Fill(0xFF1B2633);
             for (int row = 0; row < tracks.Length; row++)
             {
                 var (title, artist, top, bottom, disc) = tracks[row];
