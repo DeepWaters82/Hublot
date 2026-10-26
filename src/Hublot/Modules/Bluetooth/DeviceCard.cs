@@ -24,6 +24,8 @@ internal sealed class DeviceCard(DeviceState state, Action? onClick) : CardConte
 
     public override string? SettingsPage => "Notifications";
 
+    public override string LogName => State.Name;
+
     public override void ContinueFrom(CardContent previous, long now, AnimClock clock, bool replay)
     {
         // Complément d'information (batterie, nom…) : garde le motif du popup.

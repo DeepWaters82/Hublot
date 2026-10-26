@@ -16,6 +16,12 @@ internal sealed class XboxSource : DeviceSource
     private readonly Dictionary<string, (DeviceState State, long ConnectedAt)> _controllers = [];
     private readonly HashSet<string> _initial = [];
     private long _baselineUntil;
+    /// <summary>
+    /// Dernière manette annoncée (modèle, instant) : certains dongles exposent la même manette deux fois (XInput et
+    /// HID), avec deux identifiants ; la seconde, du même modèle dans les 2 s, n'est pas un nouvel appareil.
+    /// </summary>
+    private (ushort Vendor, ushort Product, long At) _lastAdded;
+    private readonly HashSet<string> _twins = [];
 
     public override string Name => "Manettes";
 
@@ -67,7 +73,15 @@ internal sealed class XboxSource : DeviceSource
         lock (_lock)
         {
             bool replay = _initial.Remove(state.Key) && Environment.TickCount64 < _baselineUntil;
-            _controllers[state.Key] = (state, Environment.TickCount64);
+            long now = Environment.TickCount64;
+            if (!replay && _lastAdded.Vendor == controller.HardwareVendorId && _lastAdded.Product == controller.HardwareProductId
+                && now - _lastAdded.At < 2000)
+            {
+                _twins.Add(state.Key); // même manette vue une seconde fois : ni carte, ni liste
+                return;
+            }
+            _lastAdded = (controller.HardwareVendorId, controller.HardwareProductId, now);
+            _controllers[state.Key] = (state, now);
             if (replay) return;
         }
         Log.Write($"Manette connectée : {state.Name} batterie={state.Battery}");
@@ -80,6 +94,7 @@ internal sealed class XboxSource : DeviceSource
         DeviceState state;
         lock (_lock)
         {
+            if (_twins.Remove(key)) return;
             if (!_controllers.TryGetValue(key, out var known)) return;
             state = DeviceState.Disconnected(key, known.State.Name, DeviceKind.Gamepad, known.State.Battery, known.State.Link);
             _controllers[key] = (state, known.ConnectedAt);

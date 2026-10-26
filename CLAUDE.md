@@ -312,6 +312,13 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
   FF/47 Xbox One, ou fonction HID « HID_DEVICE_SYSTEM_GAME » / UP:0001_U:0004-0005, enfants lus aussi pour un
   périphérique HID) et n'affiche rien si la source Manettes est active (`GamepadsShownElsewhere`) : deux cartes à
   70 ms d'écart (« Controller (Generic) » et « Contrôleur XBOX 360 pour Windows ») se remplaçaient au hasard.
+- **3.8.3** : journal sans identifiant matériel (`CardContent.LogName` = nom de l'appareil, plus d'adresse
+  Bluetooth ni de chemin PnP) ; module USB : carte d'un périphérique autre qu'un stockage différée de 1,5 s et
+  abandonnée si une `DeviceCard` non Bluetooth (manette, souris sur dongle) s'affiche, au branchement comme au
+  débranchement ; `XboxSource` ignore une seconde manette du même modèle (VID/PID) dans les 2 s (dongles qui
+  l'exposent en XInput et en HID) ; `app.ico` avec marge de 7 % (24 à 64 px) et rivets seulement pour un disque
+  de 34 px et plus. Charge en Bluetooth : Windows ne publie que le niveau (pas d'état de charge) ; seule piste,
+  HID++ des appareils Logitech par leur service GATT {00010000-0000-1000-8000-011F2000046D}.
 - **Journal** (3.8.0) : option `DiagnosticLog` (À propos) → `Log.Configure` au lancement et à chaque rechargement ;
   `--log` → `Log.Force` (prime sur l'option) ; 1 Mo au plus (`log.old.txt`).
 - **Page GitHub** : `HublotCore.exe --screenshot PAGE FICHIER en` (fenêtre hors écran, réglages par défaut,

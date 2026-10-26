@@ -25,6 +25,8 @@ internal sealed class UsbCard(UsbState state) : CardContent
 
     public override string? SettingsPage => "Usb";
 
+    public override string LogName => State.Name;
+
     internal static string StatusText(UsbState p)
     {
         if (!p.Connected) return L.T("Device.Disconnected");

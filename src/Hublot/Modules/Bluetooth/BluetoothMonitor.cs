@@ -129,7 +129,7 @@ internal sealed class BluetoothMonitor
             if (device.Connected) _connectedAt[device.Id] = Environment.TickCount64;
             raise = _ready && device.Connected; // appairage d'un nouvel appareil
         }
-        Log.Write($"+ {device.Name} [{device.Id}] connecté={device.Connected} batterie={device.Battery}");
+        Log.Write($"+ {device.Name} ({(device.IsLowEnergy ? "LE" : "classique")}) connecté={device.Connected} batterie={device.Battery}");
         if (raise) ConnectionChanged?.Invoke(device);
     }
 

@@ -62,6 +62,8 @@ internal sealed class MediaCard(MediaState state, Action<MediaState, MediaComman
 
     public override string? SettingsPage => "NowPlaying";
 
+    public override string LogName => State.AppName;
+
     /// <summary>
     /// Avec la progression : une rangée de plus. Hauteur fixe dès que l'option est active, même sans
     /// durée connue (direct, changement de titre) : une carte de taille différente serait recréée.

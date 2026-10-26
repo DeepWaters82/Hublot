@@ -58,6 +58,9 @@ internal abstract class CardContent
     /// <summary>S'affiche aussi par-dessus une application en plein écran (sinon : réglage général).</summary>
     public virtual bool ShowOverFullscreen(Settings settings) => false;
 
+    /// <summary>Nom lisible pour le journal de diagnostic : jamais d'adresse ni d'identifiant matériel.</summary>
+    public virtual string LogName => GetType().Name;
+
     /// <summary>Page de Hublot Core qui règle ce popup (menu du clic droit), ou null.</summary>
     public virtual string? SettingsPage => null;
 }

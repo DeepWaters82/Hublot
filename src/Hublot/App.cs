@@ -153,12 +153,12 @@ internal sealed class App : IHost
     {
         if (Environment.TickCount64 < _quietUntil)
         {
-            Log.Write($"Popup ignoré (lancement) : {card.Key}");
+            Log.Write($"Popup ignoré (lancement) : {card.LogName}");
             return;
         }
         if (!_settings.ShowInFullscreen && !card.ShowOverFullscreen(_settings) && UserIsBusy())
         {
-            Log.Write($"Popup ignoré (plein écran) : {card.Key}");
+            Log.Write($"Popup ignoré (plein écran) : {card.LogName}");
             return;
         }
         _popup.Show(card);
@@ -199,12 +199,12 @@ internal sealed class App : IHost
         if (IsPinned) return;
         if (Environment.TickCount64 < _quietUntil)
         {
-            Log.Write($"Lecteur ignoré (lancement) : {card.Key}");
+            Log.Write($"Lecteur ignoré (lancement) : {card.LogName}");
             return;
         }
         if (!_settings.ShowInFullscreen && !card.ShowOverFullscreen(_settings) && UserIsBusy())
         {
-            Log.Write($"Lecteur ignoré (plein écran) : {card.Key}");
+            Log.Write($"Lecteur ignoré (plein écran) : {card.LogName}");
             return;
         }
         PinnedPopup().ShowPinned(card, temporary: true);
@@ -243,7 +243,7 @@ internal sealed class App : IHost
         }
         else
         {
-            if (pinned.PinnedCard is null) Log.Write($"Mini-lecteur affiché : {card.Key}");
+            if (pinned.PinnedCard is null) Log.Write($"Mini-lecteur affiché : {card.LogName}");
             _pinnedFading = false;
             pinned.ShowPinned(card);
         }

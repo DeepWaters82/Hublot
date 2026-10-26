@@ -28,18 +28,23 @@ internal static class TrayIconRenderer
 
     public static Canvas Draw(int size) => Draw(size, BlueTop, BlueBottom, 0xFFFFFFFF);
 
-    /// <summary>Logo aux couleurs données (disque en dégradé, traits <paramref name="ink"/>).</summary>
-    public static Canvas Draw(int size, uint top, uint bottom, uint ink)
+    /// <summary>
+    /// Logo aux couleurs données (disque en dégradé, traits <paramref name="ink"/>). <paramref name="margin"/> : marge
+    /// autour du disque (fraction de la taille), pour les icônes de la barre des tâches et de l'Explorateur, qui
+    /// en laissent toutes une.
+    /// </summary>
+    public static Canvas Draw(int size, uint top, uint bottom, uint ink, float margin = 0)
     {
         var c = new Canvas(size, size);
         c.Clear();
-        float inset = Math.Max(0.5f, size / 32f);
+        float inset = Math.Max(0.5f, size / 32f) + MathF.Round(margin * size);
         var disc = new RectF(inset, inset, size - 2 * inset, size - 2 * inset);
         c.FillSquircle(disc, 2f, top, bottom); // exposant 2 : un cercle
         float unit = disc.Width / 24f;
         uint Ink(uint alpha) => alpha << 24 | (ink & 0x00FFFFFF);
 
-        bool detailed = size >= 24;
+        // Rivets et reflet à partir d'un disque de 34 px : en dessous, des points de 1 px qui brouillent l'icône.
+        bool detailed = disc.Width >= 34;
         float cx = disc.X + disc.Width / 2, cy = disc.Y + disc.Height / 2;
         float ringWidth = Math.Max(1f, 1.4f * unit);
         // Vitre (grille de 24) : rayon 7,6, ou 8,6 en petit, sans rivets autour.
@@ -158,7 +163,8 @@ internal static class TrayIconRenderer
         var images = new List<byte[]>();
         foreach (int size in sizes)
         {
-            using var icon = Draw(size);
+            // Marge des icônes Windows (barre des tâches : 24 à 32 px) ; presque aucune en très grand.
+            using var icon = Draw(size, BlueTop, BlueBottom, 0xFFFFFFFF, size >= 256 ? 0.03f : 0.07f);
             string temp = Path.Combine(Path.GetTempPath(), $"hublot-icon-{size}.png");
             icon.SavePng(temp);
             images.Add(File.ReadAllBytes(temp));

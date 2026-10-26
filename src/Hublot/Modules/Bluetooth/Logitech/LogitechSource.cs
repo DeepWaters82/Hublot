@@ -160,7 +160,7 @@ internal sealed partial class LogitechSource : DeviceSource
             if (usage == 1) group.ShortId = info.Id;
             else if (usage == 2) group.LongId = info.Id;
         }
-        Log.Write($"Récepteur Logitech {pid:X4} usage {usage} : {info.Id}");
+        Log.Write($"Récepteur Logitech {pid:X4} (collection {usage})");
         // Laisse aux deux collections le temps d'apparaître avant d'ouvrir le récepteur.
         _ = Task.Delay(400).ContinueWith(_ => OpenAsync(group), TaskScheduler.Default);
     }
@@ -173,7 +173,7 @@ internal sealed partial class LogitechSource : DeviceSource
         {
             if (!_groups.Remove(key, out var group)) return;
             group.Open?.Hid.Dispose();
-            Log.Write($"Récepteur Logitech retiré : {key}");
+            Log.Write($"Récepteur Logitech retiré : {group.ProductId:X4}");
         }
     }
 
@@ -197,7 +197,7 @@ internal sealed partial class LogitechSource : DeviceSource
             var hid = await HidppReceiver.OpenAsync(shortId, longId);
             if (hid is null)
             {
-                Log.Write($"Récepteur Logitech inaccessible : {group.Key}");
+                Log.Write($"Récepteur Logitech inaccessible : {group.ProductId:X4}");
                 return;
             }
             var receiver = new Receiver(group.Key, group.ProductId, hid);

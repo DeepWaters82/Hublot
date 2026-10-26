@@ -41,6 +41,11 @@ internal sealed partial class UsbModule : Module
     private const int StorageWaitMs = 6000;
     /// <summary>Récepteur Logitech : délai laissé à l'appareil relié pour s'annoncer (ouverture HID++, notification 0x41).</summary>
     private const int ReceiverWaitMs = 3500;
+    /// <summary>
+    /// Autre périphérique (pas un stockage) avec le module « Appareils sans fil » actif : délai laissé à sa carte
+    /// d'appareil (manette, souris sur dongle) ; si elle s'affiche, pas de seconde carte USB.
+    /// </summary>
+    private const int WirelessWaitMs = 1500;
     private const long ResumeGraceMs = 30_000;
 
     private sealed class Device(string interfaceId, string instanceId, Guid? container)
@@ -193,7 +198,7 @@ internal sealed partial class UsbModule : Module
                     return;
                 }
                 Log.Write($"USB déconnecté : {device.Name}");
-                if (device.Kind == UsbKind.Gamepad && GamepadsShownElsewhere) return;
+                if (device.Kind == UsbKind.Gamepad && GamepadsShownElsewhere || WirelessCardShown(connected: false)) return;
                 Notify(Describe(device, connected: false), connected: false);
             }
         }), null, FlapMs, Timeout.Infinite);
@@ -227,7 +232,7 @@ internal sealed partial class UsbModule : Module
         }
         catch (Exception ex)
         {
-            Log.Error($"Périphérique USB {device.InstanceId}", ex);
+            Log.Error($"Périphérique USB {device.Name}", ex);
         }
 
         var (kind, hub) = Classify(classes);
@@ -261,9 +266,18 @@ internal sealed partial class UsbModule : Module
                 device.ReceiverWait = new Timer(_ => _host?.Post(() => AnnounceReceiver(device)), null, ReceiverWaitMs, Timeout.Infinite);
                 return;
             }
+            if (!IsStorage(device) && Host.Settings.ModuleBluetooth)
+            {
+                device.ReceiverWait = new Timer(_ => _host?.Post(() => AnnounceReceiver(device)), null, WirelessWaitMs, Timeout.Infinite);
+                return;
+            }
             Notify(Describe(device, connected: true), connected: true);
         });
     }
+
+    /// <summary>Carte d'un appareil sans fil relié par dongle ou USB (manette, souris…) affichée : elle suffit.</summary>
+    private bool WirelessCardShown(bool connected)
+        => Host.CurrentNotification is DeviceCard { State: { Link: not DeviceLink.Bluetooth } state } && state.Connected == connected;
 
     /// <summary>
     /// Manettes : le module « Appareils sans fil » (source Manettes, Windows.Gaming.Input) les affiche avec leur vrai nom
@@ -274,9 +288,9 @@ internal sealed partial class UsbModule : Module
     private void AnnounceReceiver(Device device)
     {
         if (_host is null || !_devices.ContainsKey(device.InterfaceId)) return;
-        if (Host.CurrentNotification is DeviceCard { State.Link: DeviceLink.Dongle })
+        if (WirelessCardShown(connected: true))
         {
-            Log.Write($"Récepteur USB : l'appareil relié s'est affiché, pas de carte du récepteur ({device.Name})");
+            Log.Write($"USB : l'appareil relié s'est affiché, pas de carte USB ({device.Name})");
             return;
         }
         Notify(Describe(device, connected: true), connected: true);
