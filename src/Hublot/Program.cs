@@ -110,7 +110,7 @@ internal static class Program
                     if (done.IsSet || ++reads < 2) return;
                     foreach (var t in tiles)
                         lines.Add($"{t.Operation} | {t.Kind} | {t.Source} → {t.Target} | {t.Percent} % | pause={t.Paused} | {t.ItemName} | "
-                            + $"{t.TimeLeft} | {t.ItemsLeft} ({t.BytesLeft} o) | graphique={t.ChartSpeed} | attente={t.Attention} | "
+                            + $"{t.TimeLeft} | {t.ItemsLeft} ({t.BytesLeft} o) | graphique={t.ChartSpeed} ({t.ChartPercent} %, {t.ChartRate:0} o/s) | attente={t.Attention} | "
                             + $"choix={string.Join(" / ", t.Choices.Select(c => $"{c.Id}={c.Label}"))} | détails masqués={t.DetailsHidden}");
                     if (tiles.Count == 0) lines.Add("aucune vignette");
                     done.Set();

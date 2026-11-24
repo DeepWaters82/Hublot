@@ -47,6 +47,9 @@ internal sealed class TransfersModule : Module
         public readonly Queue<(long At, long Bytes, int Percent)> Samples = new();
         /// <summary>Octets par seconde si Windows communique les octets restants, sinon pour cent par seconde.</summary>
         public bool ByteSpeed;
+        /// <summary>Vitesse lue dans le graphique de Windows (sinon mesurée par Hublot).</summary>
+        public bool ChartSpeed;
+        public int LastChartPercent = -1;
         public double Speed = -1;
         public long DoneAt, PauseUntil;
         public bool? PauseTarget;
@@ -199,6 +202,24 @@ internal sealed class TransfersModule : Module
             track.Speed = -1;
             return;
         }
+        if (tile.ChartRate > 0 && tile.ChartPercent >= 0)
+        {
+            // 3.9.2 : la vitesse de Windows telle quelle (celle de sa fenêtre, mise à jour à chaque pour cent) et un
+            // point par pour cent, comme son graphique. Notre propre mesure ne sert plus que si le graphique est illisible.
+            if (!track.ChartSpeed)
+            {
+                track.ChartSpeed = true;
+                track.LastChartPercent = -1;
+                Array.Fill(track.History, float.NaN);
+            }
+            track.Speed = tile.ChartRate;
+            int to = tile.ChartPercent;
+            int from = track.LastChartPercent >= 0 && track.LastChartPercent < to ? track.LastChartPercent + 1 : to;
+            for (int p = from; p <= to; p++) track.History[p] = (float)tile.ChartRate;
+            track.LastChartPercent = to;
+            return;
+        }
+        if (track.ChartSpeed) return; // graphique momentanément illisible : la dernière vitesse de Windows tient
         if (!track.ByteSpeed && tile.BytesLeft >= 0)
         {
             // Octets enfin lisibles (détails ouverts après coup) : la vitesse passe en octets, le graphique repart.
@@ -266,7 +287,8 @@ internal sealed class TransfersModule : Module
             : paused ? TransferPhase.Paused
             : TransferPhase.Running;
         string? speed = phase == TransferPhase.Running
-            ? track.ByteSpeed && track.Speed > 0 ? L.F("Xfer.PerSecond", L.Size((ulong)track.Speed)) : tile.ChartSpeed
+            ? track.ChartSpeed ? tile.ChartSpeed ?? L.F("Xfer.PerSecond", L.Size((ulong)track.Speed))
+            : track.ByteSpeed && track.Speed > 0 ? L.F("Xfer.PerSecond", L.Size((ulong)track.Speed)) : tile.ChartSpeed
             : null;
         int percent = phase == TransferPhase.Done ? 100 : tile.Percent;
         return new TransferView(tile, phase, percent, speed, (float[])track.History.Clone());

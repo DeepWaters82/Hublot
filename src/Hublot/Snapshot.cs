@@ -181,7 +181,24 @@ internal static class Snapshot
                 foreach (var (level, fill, steam) in new[] { (-1f, 0xFF60CDFFu, -1f), (1f, 0xFF60CDFFu, -1f), (0.5f, 0xFF60CDFFu, -1f), (0f, 0xFF60CDFFu, -1f), (1f, 0xFFFF9A3Cu, -1f), (1f, 0xFF60CDFFu, 0.45f) })
                 {
                     sheet.FillRoundRect(new RectF(x - 2, y0 - 2, size * 2 + 4, size * 2 + 4), 3, 0xFF202020);
-                    Modules.Caffeine.CaffeineIcon.Draw(sheet, new RectF(x, y0, size * 2, size * 2), level, fill, 0xFFFFFFFF, steam);
+                    // Rendue à sa vraie taille (comme dans la zone de notification), puis agrandie ×2 pixel par pixel.
+                    using (var icon = new Canvas(size, size)) unsafe
+                    {
+                        icon.Clear();
+                        Modules.Caffeine.CaffeineIcon.Draw(icon, new RectF(0, 0, size, size), level, fill, 0xFFFFFFFF, steam);
+                        icon.Flush();
+                        sheet.Flush();
+                        for (int py = 0; py < size * 2 && y0 + py < sheet.Height; py++)
+                        for (int px = 0; px < size * 2 && x + px < sheet.Width; px++)
+                        {
+                            uint p = icon.Bits[py / 2 * size + px / 2], a = p >> 24;
+                            uint* dst = sheet.Bits + (y0 + py) * sheet.Width + x + px;
+                            uint bg = *dst, result = 0xFF000000;
+                            for (int shift = 0; shift <= 16; shift += 8)
+                                result |= Math.Min(255u, ((p >> shift) & 0xFF) + ((bg >> shift) & 0xFF) * (255 - a) / 255) << shift;
+                            *dst = result;
+                        }
+                    }
                     x += size * 2 + 10;
                 }
                 x += 16;

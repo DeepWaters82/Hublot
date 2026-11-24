@@ -208,8 +208,19 @@ internal sealed unsafe class Canvas : IDisposable
         GdipDeleteBrush(brush);
     }
 
+    /// <summary>Texte en GDI+ comme avant 3.9.2 (variable HUBLOT_GDI_TEXT=1 : comparaisons de rendu, dépannage).</summary>
+    private static readonly bool GdiText = Environment.GetEnvironmentVariable("HUBLOT_GDI_TEXT") == "1";
+
     public void DrawText(string text, Font font, uint argb, RectF r, TextAlign align = TextAlign.Near, bool ellipsis = false)
     {
+        if (!font.IsSymbol && !GdiText)
+        {
+            // 3.9.2 : texte par DirectWrite (net, lissage Fluent) ; GDI+ seulement en repli.
+            Flush();
+            var m = stackalloc float[6];
+            WorldTransform(m);
+            if (DirectText.Draw(_dc, Width, Height, new ReadOnlySpan<float>(m, 6), text, font.Families, font.Pixels, argb, r, (int)align, ellipsis)) return;
+        }
         GdipSetStringFormatAlign(_format, (int)align);
         GdipSetStringFormatTrimming(_format, ellipsis ? StringTrimmingEllipsisCharacter : 0);
         GdipCreateSolidFill(argb, out var brush);
@@ -248,8 +259,17 @@ internal sealed unsafe class Canvas : IDisposable
                 (layout.Y + layout.Height / 2 - (ink.Y + ink.Height / 2)) / size);
     }
 
+    private void WorldTransform(float* elements)
+    {
+        GdipCreateMatrix(out var matrix);
+        GdipGetWorldTransform(_graphics, matrix);
+        GdipGetMatrixElements(matrix, elements);
+        GdipDeleteMatrix(matrix);
+    }
+
     public float MeasureText(string text, Font font)
     {
+        if (!font.IsSymbol && !GdiText && DirectText.Measure(text, font.Families, font.Pixels) is >= 0 and var width) return width;
         GdipSetStringFormatAlign(_format, StringAlignmentNear);
         GdipSetStringFormatTrimming(_format, 0);
         var layout = new RectF(0, 0, 100_000, 10_000);

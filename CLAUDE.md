@@ -357,6 +357,9 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
   animation `CaffeineTray.AnimateFill(from)` : remplissage 1,1 s puis deux bouffées de fumée (2,4 s, dès 70 % du
   remplissage), images de 40 ms, puis plus de minuteur ; prolongation (+30 min) = remplissage depuis le niveau affiché.
   Survol de la tasse : 800 ms avant la carte (450 pour l'icône de Hublot). Tasse de la carte : 28 DIP dans l'anneau.
+- **3.9.2** : forme de mug (bord fermé, parois droites, fond arrondi, anse ronde, plus de soucoupe) sur toute la
+  hauteur ; trait entier (`round(taille / 11)` : 1 px à 16, 2 px à 20-24) et parois / bord calés sur la grille.
+  Planche `--snapshot` : tasses rendues à leur vraie taille puis agrandies ×2 pixel par pixel.
 - Raccourcis : `RegisterHotKey` ids 1–4 sur la fenêtre Caféine, `(mods << 16) | vk`, désactivés par défaut
   (Ctrl + Alt + Maj + K / T / E / X).
 - « Autre durée… » : le service lance `HublotCore.exe --caffeine timed|shutdown` (`CaffeineDurationDialog`) qui
@@ -381,17 +384,18 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
   1 lecture / s (2,5 s si tout est en pause ou en attente), publie chaque lecture (`Host.Post`). Arbre brut parcouru
   (≈ 20 éléments par vignette `OperationTileDialog`), éléments repérés par **AutomationId** (indépendants de la langue) :
   `eltStartText`, `eltFirstLocation`, `eltSecondLocation`, `eltSummary` (« 20% terminé » / « En pause - 46% terminé » :
-  pause = un état avant le nombre), `eltRateChart_New` (nom = « … ; vitesse : 2,91 Go par seconde », **rarement
-  actualisé**), `eltItemName`, `eltTimeRemaining`, `eltItemsRemaining` (« 9 (29,8 Go) »), `eltPauseButton`,
+  pause = un état avant le nombre), `eltRateChart_New` (nom = « Progression de l'opération : 49% ; vitesse : 36,0 Mo par seconde »,
+  actualisé à **chaque pour cent** franchi : c'est la « Vitesse » affichée par Windows), `eltItemName`, `eltTimeRemaining`, `eltItemsRemaining` (« 9 (29,8 Go) »), `eltPauseButton`,
   `eltCancelButton` ; fenêtre : `eltDisplayModeBtn`. Conflit de noms : plus de résumé, `eltConflictInterruptDescription`
   + boutons `IdTileKeepSource` / `IdTileKeepDest` / `IdTileDecideForEach` (libellés de Windows repris tels quels).
   Mode « Moins de détails » : nom, temps et éléments absents → option `TransferExpandDetails` (clic sur
   `eltDisplayModeBtn`, **une fois par fenêtre**). Relevés du 24/11/2026 sur Windows 11 26300 en français.
 - Clics (pause, annuler, choix) : file de commandes exécutée par le thread de lecture, relecture 350 ms après ; la pause
   est affichée tout de suite (`PauseTarget`, 2,5 s au plus).
-- Vitesse : octets restants qui diminuent sur 5 s (Windows arrondit à 0,1 Go : une lecture sans changement garde la
-  vitesse précédente), sinon pour cent par seconde ; mémorisée par pour cent de progression → graphique (`History`, 101
-  cases). À défaut, la vitesse du graphique de Windows.
+- Vitesse (3.9.2) : **celle de Windows**, lue dans le nom du graphique (`TransferTile.ParseChart` → pour cent +
+  octets/s, affichée telle quelle « 36,0 Mo/s ») ; un point par pour cent → graphique (`History`, 101 cases), comme
+  celui de Windows. Repli si le graphique est illisible : octets restants qui diminuent sur 5 s (arrondis à 0,1 Go par
+  Windows, d'où des vitesses fausses : 24 Mo/s mesurés pour 35 réels en 3.9.1), sinon pour cent par seconde.
 - Fin : vignette disparue à 90 % ou plus (ni annulée, ni en attente) → « Terminé » 3 s ; sinon retirée.
 - Carte : `IHost.ShowTransfers(card | null)`, popup à part dans `App` (`_transfers`, `Draggable`, `PopupMode.Pinned`),
   emplacement `TransferPosition` / `TransferMonitor(Device)` (défaut en haut à droite) enregistré par le service au
@@ -492,4 +496,10 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
   `app.ico` : `Hublot.exe --write-ico src\Hublot\app.ico` ; planche : `Hublot.exe --icons FICHIER.png`. Le nom
   « Hublot » est une marque d'horloger : à revoir avant toute diffusion publique.
 - Icônes Segoe dans les tuiles : `Canvas.DrawIcon` (centrage sur le dessin du glyphe, pas sur son cadratin).
+- Texte (3.9.2) : **DirectWrite** (`Interop/DirectText.cs`) — cible D2D « DC » logicielle liée au DIB du canevas
+  (`BindDC` sur la seule zone du texte, transformation GDI+ reprise), niveaux de gris, rendu naturel symétrique,
+  gamma 1,8, contraste 1 ; familles GDI « … Semibold » → famille + graisse 600 ; formats en cache (64) par thread.
+  GDI+ (`AntiAliasGridFit`) paraissait pixellisé, surtout sur l'acrylique (ClearType impossible sur fond
+  translucide). Glyphes d'icônes (`Font.Icons`) toujours en GDI+ ; repli GDI+ si D2D échoue ; `HUBLOT_GDI_TEXT=1`
+  force l'ancien rendu (comparaisons). `MeasureText` passe aussi par DirectWrite (`IDWriteTextLayout::GetMetrics`).
 - Logitech et manettes Xbox : toujours **non testés sur matériel**.

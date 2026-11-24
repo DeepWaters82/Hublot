@@ -211,12 +211,14 @@ internal sealed class TransferReader : IDisposable
             if (summary is null && attention is null && choices.Count > 0) attention = "";
             if (summary is not null && choices.Count == 0) attention = null;
 
+            var (chartPercent, chartRate) = TransferTile.ParseChart(chart);
             string key = $"{window:X}|{start}|{source}|{target}";
             string operation = TransferTile.TrimOperation(start, source is not null);
             list.Add(new Parsed(new TransferTile(window, key, operation, TransferTile.KindOf(operation), source, target,
                 percent, paused, Text("eltItemName"), Text("eltTimeRemaining"), itemsLeft, TransferTile.ParseBytes(itemsLeft),
                 TransferTile.ParseChartSpeed(chart), attention, choices,
-                DetailsHidden: summary is not null && attention is null && itemsLeft is null && Text("eltItemName") is null), t));
+                DetailsHidden: summary is not null && attention is null && itemsLeft is null && Text("eltItemName") is null,
+                chartPercent, chartRate), t));
         }
         return list;
     }

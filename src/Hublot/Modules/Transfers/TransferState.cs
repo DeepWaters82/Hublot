@@ -21,10 +21,13 @@ internal sealed record TransferChoice(string Id, string Label);
 /// <param name="ChartSpeed">Vitesse annoncée par le graphique de Windows (« 2,91 Go par seconde »), si lisible.</param>
 /// <param name="Attention">Texte d'une vignette qui attend une décision (conflit, erreur), sinon null.</param>
 /// <param name="DetailsHidden">Fenêtre en mode « Moins de détails » : ni nom, ni temps, ni éléments restants.</param>
+/// <param name="ChartPercent">Pourcentage du dernier point du graphique de Windows, -1 si illisible.</param>
+/// <param name="ChartRate">Vitesse de ce point en octets par seconde (celle que Windows affiche), -1 si illisible.</param>
 internal sealed record TransferTile(
     nint Window, string Key, string Operation, TransferKind Kind, string? Source, string? Target,
     int Percent, bool Paused, string? ItemName, string? TimeLeft, string? ItemsLeft, long BytesLeft,
-    string? ChartSpeed, string? Attention, IReadOnlyList<TransferChoice> Choices, bool DetailsHidden)
+    string? ChartSpeed, string? Attention, IReadOnlyList<TransferChoice> Choices, bool DetailsHidden,
+    int ChartPercent = -1, double ChartRate = -1)
 {
     /// <summary>Nature de l'opération d'après la phrase de Windows (français, anglais ; sinon « autre »).</summary>
     public static TransferKind KindOf(string operation)
@@ -94,6 +97,26 @@ internal sealed record TransferTile(
         var speed = chart[(colon + 1)..].Trim();
         if (!speed.Any(char.IsDigit) || speed.Contains('%')) return null;
         return speed.Replace(" par seconde", "/s").Replace(" per second", "/s");
+    }
+
+    /// <summary>
+    /// Point courant du graphique de Windows : « Progression de l'opération : 49% ; vitesse : 36,0 Mo par seconde »
+    /// → (49, 36 × 2²⁰). Windows ajoute un point (et met à jour sa « Vitesse ») à chaque pour cent franchi ; c'est
+    /// sa propre mesure, celle de sa fenêtre. (-1, -1) si illisible.
+    /// </summary>
+    public static (int Percent, double Rate) ParseChart(string? chart)
+    {
+        if (string.IsNullOrEmpty(chart)) return (-1, -1);
+        int colon = chart.LastIndexOf(':');
+        if (colon < 0) return (-1, -1);
+        var p = PercentPattern.Match(chart[..colon]);
+        int percent = p.Success ? Math.Clamp(int.Parse(p.Groups[1].Value, CultureInfo.InvariantCulture), 0, 100) : -1;
+        long rate = ParseBytes("(" + chart[(colon + 1)..].Trim().Split(' ', 3) switch
+        {
+            [var n, var u, ..] => n + " " + u,
+            _ => "",
+        } + ")");
+        return (percent, rate);
     }
 }
 

@@ -123,7 +123,8 @@ paramètres) et *Fermer*.
 
 - Quand Windows affiche sa fenêtre de copie (copie, déplacement, suppression dans l'Explorateur), une **carte**
   la reprend : opération, source → destination, pourcentage, **vitesse et son graphique**, fichier en cours,
-  temps et éléments restants. Plusieurs transferts : une section chacun (trois au plus).
+  temps et éléments restants. Plusieurs transferts : une section chacun (trois au plus). Les chiffres sont ceux
+  de Windows, vitesse comprise.
 - **Glisser** la carte la déplace (coins, haut ou bas au centre, autre écran) ; Hublot retient l'emplacement
   (en haut à droite par défaut).
 - **Boutons** pause / reprise et annuler (désactivables). **Clic** sur la carte : la fenêtre de Windows au

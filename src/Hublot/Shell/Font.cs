@@ -16,9 +16,14 @@ internal sealed class Font : IDisposable
     public nint Handle { get; }
     public nint FamilyHandle { get; }
     public float Pixels { get; }
+    /// <summary>Familles candidates (DirectWrite les résout de son côté, voir <see cref="Interop.DirectText"/>).</summary>
+    public string[] Families { get; }
+    /// <summary>Glyphes d'icônes : toujours en GDI+ (centrage mesuré sur leur contour GDI+).</summary>
+    public bool IsSymbol => ReferenceEquals(Families, Icons);
 
     public Font(float pixels, string[] families)
     {
+        Families = families;
         FamilyHandle = Family(families);
         Pixels = pixels;
         Check(GdipCreateFont(FamilyHandle, pixels, 0, UnitPixel, out var handle));
