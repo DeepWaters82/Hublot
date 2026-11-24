@@ -29,6 +29,12 @@ public sealed class Settings
     /// 1 = liste d'appareils, 2 = lecture en cours, 3 = stockage USB).
     /// </summary>
     public const string PreviewMessage = "Hublot.Preview";
+    /// <summary>
+    /// Durée choisie dans Hublot Core pour Caféine, envoyée à la fenêtre <see cref="CaffeineWindowClass"/> :
+    /// wParam = 1 (garder éveillé) ou 2 (éteindre le PC), lParam = minutes.
+    /// </summary>
+    public const string CaffeineMessage = "Hublot.Caffeine";
+    public const string CaffeineWindowClass = "Hublot.Caffeine";
     /// <summary>Hublot Core → service : nouvelle version disponible (wParam = majeur &lt;&lt; 16 | mineur &lt;&lt; 8 | correctif).</summary>
     public const string UpdateMessage = "Hublot.UpdateAvailable";
 
@@ -120,6 +126,35 @@ public sealed class Settings
     public bool ModuleAudio { get; set; } = true;
     public bool AudioNotifyPlugged { get; set; } = true;
     public bool AudioNotifyUnplugged { get; set; } = true;
+
+    // Module « Caféine » (3.9.0) : garder le PC éveillé (indéfiniment, pendant une durée), ou l’éteindre après une durée.
+    public bool ModuleCaffeine { get; set; } = true;
+    /// <summary>Écran aussi gardé allumé pendant Caféine (sinon seul le PC reste éveillé, l’écran peut s’éteindre).</summary>
+    public bool CaffeineKeepDisplay { get; set; } = true;
+    /// <summary>Popup d’avertissement ces minutes avant la fin de Caféine ou l’extinction.</summary>
+    public int CaffeineWarningMinutes { get; set; } = 5;
+    /// <summary>Durée des raccourcis « pendant une durée » et « éteindre dans » (minutes).</summary>
+    public int CaffeineDefaultMinutes { get; set; } = 60;
+    /// <summary>Raccourcis de Caféine : (modificateurs &lt;&lt; 16) | touche ; désactivés par défaut.</summary>
+    public bool CaffeineHotkeyIndefiniteEnabled { get; set; }
+    public int CaffeineHotkeyIndefinite { get; set; } = (ModControl | ModAlt | ModShift) << 16 | 0x4B; // K
+    public bool CaffeineHotkeyTimedEnabled { get; set; }
+    public int CaffeineHotkeyTimed { get; set; } = (ModControl | ModAlt | ModShift) << 16 | 0x54; // T
+    public bool CaffeineHotkeyShutdownEnabled { get; set; }
+    public int CaffeineHotkeyShutdown { get; set; } = (ModControl | ModAlt | ModShift) << 16 | 0x45; // E
+    public bool CaffeineHotkeyOffEnabled { get; set; }
+    public int CaffeineHotkeyOff { get; set; } = (ModControl | ModAlt | ModShift) << 16 | 0x58; // X
+
+    // Module « Transferts de fichiers » (3.9.0) : progression des copies de l’Explorateur dans une carte déplaçable.
+    public bool ModuleTransfers { get; set; } = true;
+    /// <summary>Boutons pause / reprise et annuler sur la carte.</summary>
+    public bool TransferControls { get; set; } = true;
+    /// <summary>Fenêtre de Windows en « Moins de détails » : Hublot l’agrandit une fois pour lire nom, temps et éléments restants.</summary>
+    public bool TransferExpandDetails { get; set; } = true;
+    /// <summary>Emplacement et écran de la carte, changés en la faisant glisser à la souris et enregistrés par le service.</summary>
+    public PopupPosition TransferPosition { get; set; } = PopupPosition.TopRight;
+    public PopupMonitor TransferMonitor { get; set; } = PopupMonitor.Primary;
+    public string TransferMonitorDevice { get; set; } = "";
 
     // Module « Alimentation »
     public bool PowerNotifyPlugged { get; set; } = true;
@@ -355,6 +390,24 @@ public sealed class Settings
         Add(nameof(ModuleAudio), ModuleAudio);
         Add(nameof(AudioNotifyPlugged), AudioNotifyPlugged);
         Add(nameof(AudioNotifyUnplugged), AudioNotifyUnplugged);
+        Add(nameof(ModuleCaffeine), ModuleCaffeine);
+        Add(nameof(CaffeineKeepDisplay), CaffeineKeepDisplay);
+        Add(nameof(CaffeineWarningMinutes), CaffeineWarningMinutes);
+        Add(nameof(CaffeineDefaultMinutes), CaffeineDefaultMinutes);
+        Add(nameof(CaffeineHotkeyIndefiniteEnabled), CaffeineHotkeyIndefiniteEnabled);
+        Add(nameof(CaffeineHotkeyIndefinite), CaffeineHotkeyIndefinite);
+        Add(nameof(CaffeineHotkeyTimedEnabled), CaffeineHotkeyTimedEnabled);
+        Add(nameof(CaffeineHotkeyTimed), CaffeineHotkeyTimed);
+        Add(nameof(CaffeineHotkeyShutdownEnabled), CaffeineHotkeyShutdownEnabled);
+        Add(nameof(CaffeineHotkeyShutdown), CaffeineHotkeyShutdown);
+        Add(nameof(CaffeineHotkeyOffEnabled), CaffeineHotkeyOffEnabled);
+        Add(nameof(CaffeineHotkeyOff), CaffeineHotkeyOff);
+        Add(nameof(ModuleTransfers), ModuleTransfers);
+        Add(nameof(TransferControls), TransferControls);
+        Add(nameof(TransferExpandDetails), TransferExpandDetails);
+        Add(nameof(TransferPosition), TransferPosition);
+        Add(nameof(TransferMonitor), TransferMonitor);
+        Add(nameof(TransferMonitorDevice), TransferMonitorDevice);
         Add(nameof(PowerNotifyPlugged), PowerNotifyPlugged);
         Add(nameof(PowerNotifyUnplugged), PowerNotifyUnplugged);
         Add(nameof(PowerNotifyLevel), PowerNotifyLevel);
@@ -447,6 +500,24 @@ public sealed class Settings
             case nameof(ModuleAudio): ModuleAudio = ParseBool(value, ModuleAudio); break;
             case nameof(AudioNotifyPlugged): AudioNotifyPlugged = ParseBool(value, AudioNotifyPlugged); break;
             case nameof(AudioNotifyUnplugged): AudioNotifyUnplugged = ParseBool(value, AudioNotifyUnplugged); break;
+            case nameof(ModuleCaffeine): ModuleCaffeine = ParseBool(value, ModuleCaffeine); break;
+            case nameof(CaffeineKeepDisplay): CaffeineKeepDisplay = ParseBool(value, CaffeineKeepDisplay); break;
+            case nameof(CaffeineWarningMinutes): CaffeineWarningMinutes = ParseInt(value, CaffeineWarningMinutes, 1, 30); break;
+            case nameof(CaffeineDefaultMinutes): CaffeineDefaultMinutes = ParseInt(value, CaffeineDefaultMinutes, 5, 24 * 60); break;
+            case nameof(CaffeineHotkeyIndefiniteEnabled): CaffeineHotkeyIndefiniteEnabled = ParseBool(value, CaffeineHotkeyIndefiniteEnabled); break;
+            case nameof(CaffeineHotkeyIndefinite): CaffeineHotkeyIndefinite = ParseInt(value, CaffeineHotkeyIndefinite, 0, 0xFFFFF); break;
+            case nameof(CaffeineHotkeyTimedEnabled): CaffeineHotkeyTimedEnabled = ParseBool(value, CaffeineHotkeyTimedEnabled); break;
+            case nameof(CaffeineHotkeyTimed): CaffeineHotkeyTimed = ParseInt(value, CaffeineHotkeyTimed, 0, 0xFFFFF); break;
+            case nameof(CaffeineHotkeyShutdownEnabled): CaffeineHotkeyShutdownEnabled = ParseBool(value, CaffeineHotkeyShutdownEnabled); break;
+            case nameof(CaffeineHotkeyShutdown): CaffeineHotkeyShutdown = ParseInt(value, CaffeineHotkeyShutdown, 0, 0xFFFFF); break;
+            case nameof(CaffeineHotkeyOffEnabled): CaffeineHotkeyOffEnabled = ParseBool(value, CaffeineHotkeyOffEnabled); break;
+            case nameof(CaffeineHotkeyOff): CaffeineHotkeyOff = ParseInt(value, CaffeineHotkeyOff, 0, 0xFFFFF); break;
+            case nameof(ModuleTransfers): ModuleTransfers = ParseBool(value, ModuleTransfers); break;
+            case nameof(TransferControls): TransferControls = ParseBool(value, TransferControls); break;
+            case nameof(TransferExpandDetails): TransferExpandDetails = ParseBool(value, TransferExpandDetails); break;
+            case nameof(TransferPosition): TransferPosition = ParseEnum(value, TransferPosition); break;
+            case nameof(TransferMonitor): TransferMonitor = ParseEnum(value, TransferMonitor); break;
+            case nameof(TransferMonitorDevice): TransferMonitorDevice = value; break;
             case nameof(PowerNotifyPlugged): PowerNotifyPlugged = ParseBool(value, PowerNotifyPlugged); break;
             case nameof(PowerNotifyUnplugged): PowerNotifyUnplugged = ParseBool(value, PowerNotifyUnplugged); break;
             case nameof(PowerNotifyLevel): PowerNotifyLevel = ParseBool(value, PowerNotifyLevel); break;

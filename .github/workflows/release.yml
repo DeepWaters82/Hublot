@@ -36,3 +36,16 @@ jobs:
         with:
           files: dist/Hublot-Setup.exe
           generate_release_notes: true
+
+      # Paquet Microsoft Store : non joint à la version publique, à télécharger depuis
+      # l'onglet Actions (artefact « store-package ») puis à téléverser dans Partner Center.
+      - name: Build Store package
+        shell: pwsh
+        run: ./build-store.ps1
+
+      - name: Upload Store package
+        uses: actions/upload-artifact@v4
+        with:
+          name: store-package
+          path: dist/*.msix
+          if-no-files-found: error

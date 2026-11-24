@@ -48,6 +48,17 @@ public partial class App : Application
             return;
         }
 
+        int caffeine = Array.IndexOf(e.Args, "--caffeine");
+        if (caffeine >= 0)
+        {
+            // --caffeine timed|shutdown : durée personnalisée de Caféine (menu de la tasse), puis on quitte.
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            bool shutdown = caffeine + 1 < e.Args.Length && e.Args[caffeine + 1] == "shutdown";
+            new CaffeineDurationDialog(shutdown).ShowDialog();
+            Shutdown();
+            return;
+        }
+
         int shot = Array.IndexOf(e.Args, "--screenshot");
         if (shot >= 0 && shot + 2 < e.Args.Length)
         {

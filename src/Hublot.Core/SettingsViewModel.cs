@@ -81,6 +81,57 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public bool MediaPinnedHotkeyEnabled { get => _s.MediaPinnedHotkeyEnabled; set => Set(() => _s.MediaPinnedHotkeyEnabled = value, preview: false); }
 
+    // ── Caféine ──
+    public bool ModuleCaffeine { get => _s.ModuleCaffeine; set => Set(() => _s.ModuleCaffeine = value, preview: false); }
+    public bool CaffeineKeepDisplay { get => _s.CaffeineKeepDisplay; set => Set(() => _s.CaffeineKeepDisplay = value, preview: false); }
+
+    public bool ModuleTransfers { get => _s.ModuleTransfers; set => Set(() => _s.ModuleTransfers = value, preview: false); }
+    public bool TransferControls { get => _s.TransferControls; set => Set(() => _s.TransferControls = value, preview: false); }
+    public bool TransferExpandDetails { get => _s.TransferExpandDetails; set => Set(() => _s.TransferExpandDetails = value, preview: false); }
+
+    private static readonly int[] CaffeineWarningChoices = [1, 2, 5, 10, 15];
+    private static readonly int[] CaffeineDurationChoices = [15, 30, 60, 120, 240, 480];
+
+    public int CaffeineWarningIndex
+    {
+        get => Array.IndexOf(CaffeineWarningChoices, _s.CaffeineWarningMinutes) is var i and >= 0 ? i : 2;
+        set => Set(() => _s.CaffeineWarningMinutes = CaffeineWarningChoices[Math.Clamp(value, 0, CaffeineWarningChoices.Length - 1)], preview: false);
+    }
+
+    public int CaffeineDefaultIndex
+    {
+        get => Array.IndexOf(CaffeineDurationChoices, _s.CaffeineDefaultMinutes) is var i and >= 0 ? i : 2;
+        set => Set(() => _s.CaffeineDefaultMinutes = CaffeineDurationChoices[Math.Clamp(value, 0, CaffeineDurationChoices.Length - 1)], preview: false);
+    }
+
+    public bool CaffeineHotkeyIndefiniteEnabled { get => _s.CaffeineHotkeyIndefiniteEnabled; set => Set(() => _s.CaffeineHotkeyIndefiniteEnabled = value, preview: false); }
+    public bool CaffeineHotkeyTimedEnabled { get => _s.CaffeineHotkeyTimedEnabled; set => Set(() => _s.CaffeineHotkeyTimedEnabled = value, preview: false); }
+    public bool CaffeineHotkeyShutdownEnabled { get => _s.CaffeineHotkeyShutdownEnabled; set => Set(() => _s.CaffeineHotkeyShutdownEnabled = value, preview: false); }
+    public bool CaffeineHotkeyOffEnabled { get => _s.CaffeineHotkeyOffEnabled; set => Set(() => _s.CaffeineHotkeyOffEnabled = value, preview: false); }
+
+    private static string Describe(int packed) => Hotkeys.Describe(packed >> 16, packed & 0xFFFF);
+    public string CaffeineHotkeyIndefiniteText => Describe(_s.CaffeineHotkeyIndefinite);
+    public string CaffeineHotkeyTimedText => Describe(_s.CaffeineHotkeyTimed);
+    public string CaffeineHotkeyShutdownText => Describe(_s.CaffeineHotkeyShutdown);
+    public string CaffeineHotkeyOffText => Describe(_s.CaffeineHotkeyOff);
+
+    /// <summary>Raccourci de Caféine saisi (<paramref name="which"/> = Indefinite, Timed, Shutdown, Off).</summary>
+    public void SetCaffeineHotkey(string which, int modifiers, int key)
+    {
+        int packed = modifiers << 16 | key;
+        Set(() =>
+        {
+            switch (which)
+            {
+                case "Indefinite": _s.CaffeineHotkeyIndefinite = packed; break;
+                case "Timed": _s.CaffeineHotkeyTimed = packed; break;
+                case "Shutdown": _s.CaffeineHotkeyShutdown = packed; break;
+                case "Off": _s.CaffeineHotkeyOff = packed; break;
+            }
+        }, preview: false);
+        OnPropertyChanged($"CaffeineHotkey{which}Text");
+    }
+
     public string MediaPinnedHotkeyText => Hotkeys.Describe(_s.MediaPinnedHotkeyModifiers, _s.MediaPinnedHotkeyKey);
 
     public void SetPinnedHotkey(int modifiers, int key)
@@ -159,9 +210,13 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         try { disk = Settings.Load(); }
         catch (Exception) { return; }
         _s.MediaPinned = disk.MediaPinned;
+        _s.CaffeineKeepDisplay = disk.CaffeineKeepDisplay; // aussi basculé depuis le menu de la tasse
         _s.MediaPinnedPosition = disk.MediaPinnedPosition;
         _s.MediaPinnedMonitor = disk.MediaPinnedMonitor;
         _s.MediaPinnedMonitorDevice = disk.MediaPinnedMonitorDevice;
+        _s.TransferPosition = disk.TransferPosition; // carte des transferts déplacée à la souris
+        _s.TransferMonitor = disk.TransferMonitor;
+        _s.TransferMonitorDevice = disk.TransferMonitorDevice;
     }
     public int Margin { get => _s.Margin; set => Set(() => _s.Margin = value); }
 

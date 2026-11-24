@@ -198,7 +198,11 @@ internal sealed partial class UsbModule : Module
                     return;
                 }
                 Log.Write($"USB déconnecté : {device.Name}");
-                if (device.Kind == UsbKind.Gamepad && GamepadsShownElsewhere || WirelessCardShown(connected: false)) return;
+                if (device.Kind == UsbKind.Gamepad && GamepadsShownElsewhere || WirelessCardShown(connected: false) || PartOfGamepad(device))
+                {
+                    Log.Write($"USB : fait partie de la manette, pas de carte USB ({device.Name})");
+                    return;
+                }
                 Notify(Describe(device, connected: false), connected: false);
             }
         }), null, FlapMs, Timeout.Infinite);
@@ -285,9 +289,25 @@ internal sealed partial class UsbModule : Module
     /// </summary>
     private bool GamepadsShownElsewhere => Host.Settings is { ModuleBluetooth: true, XboxControllers: true };
 
+    [GeneratedRegex(@"VID_([0-9A-F]{4})", RegexOptions.IgnoreCase)]
+    private static partial Regex VendorId();
+
+    /// <summary>Fabricant USB (« VID_3537 ») d'après l'identifiant d'instance, ou null.</summary>
+    private static ushort? VendorOf(string instanceId)
+        => VendorId().Match(instanceId) is { Success: true } m
+        && ushort.TryParse(m.Groups[1].Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var vid) ? vid : null;
+
+    /// <summary>Périphérique d'une manette qui vient de se connecter ou de se déconnecter (dongle qui change de mode).</summary>
+    private bool PartOfGamepad(Device device) => GamepadsShownElsewhere && RecentGamepad.Covers(VendorOf(device.InstanceId));
+
     private void AnnounceReceiver(Device device)
     {
         if (_host is null || !_devices.ContainsKey(device.InterfaceId)) return;
+        if (PartOfGamepad(device))
+        {
+            Log.Write($"USB : fait partie de la manette, pas de carte USB ({device.Name})");
+            return;
+        }
         if (WirelessCardShown(connected: true))
         {
             Log.Write($"USB : l'appareil relié s'est affiché, pas de carte USB ({device.Name})");

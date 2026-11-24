@@ -33,6 +33,20 @@ internal interface IHost
     /// </summary>
     void ShowPlayer(CardContent card);
 
+    /// <summary>
+    /// Carte du survol d’une autre icône de la zone de notification (Caféine), au-dessus de <paramref name="icon"/> :
+    /// ouverte tant que la souris est sur l’icône ou la carte ; <see cref="EndHover"/> quand elle quitte l’icône.
+    /// </summary>
+    void ShowHover(CardContent card, Interop.RECT icon);
+
+    void EndHover();
+
+    /// <summary>
+    /// Carte des transferts de fichiers, à son propre emplacement (déplacée à la souris, comme le lecteur) : affichée
+    /// ou mise à jour sur place ; null pour la retirer. Masquée pendant une application en plein écran.
+    /// </summary>
+    void ShowTransfers(CardContent? card);
+
     /// <summary>Carte d'événement actuellement affichée, s'il y en a une.</summary>
     CardContent? CurrentNotification { get; }
 

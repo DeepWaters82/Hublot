@@ -22,4 +22,7 @@ internal sealed class WatchHost(Action<CardContent> popup) : IHost
     public CardContent? PinnedCard => null;
     public void OpenCore(string? page = null) { }
     public void OpenUri(string uri) { }
+    public void ShowHover(CardContent card, Interop.RECT icon) => popup(card);
+    public void EndHover() { }
+    public void ShowTransfers(CardContent? card) { if (card is not null) popup(card); }
 }

@@ -276,7 +276,8 @@ internal sealed class NowPlayingModule : Module
         bool newTrack = key != tracker.LastKey;
         bool resumed = state.Playing && !tracker.WasPlaying;
         bool paused = !state.Playing && tracker.WasPlaying;
-        Log.Write($"Média {state.AppName} : « {state.Title} » lecture={state.Playing} nouveau={newTrack} reprise={resumed} référence={tracker.Baseline} musique={state.NotMusic ?? "oui"}");
+        // Jamais le titre ni l'artiste dans le journal : ce que l'on écoute ou regarde (vidéo, recherche) reste privé.
+        Log.Write($"Média {state.AppName} : titre de {state.Title.Length} caractères, lecture={state.Playing} nouveau={newTrack} reprise={resumed} référence={tracker.Baseline} musique={state.NotMusic ?? "oui"}");
         tracker.WasPlaying = state.Playing;
         if (resumed || newTrack && state.Playing) _activeApp = tracker.AppId;
         UpdatePinned(trigger: tracker.Baseline || resumed || newTrack && state.Playing);
@@ -315,7 +316,7 @@ internal sealed class NowPlayingModule : Module
         }
         if (NotMusicFiltered(state))
         {
-            Log.Write($"Média ignoré (pas de la musique : {state.NotMusic}) : {state.Title} ({state.AppName})");
+            Log.Write($"Média ignoré (pas de la musique : {state.NotMusic}) : {state.AppName}");
             return;
         }
         if (Host.Settings.MediaHideWhenAppFocused && MediaApps.IsForeground(state.AppId))
@@ -328,7 +329,7 @@ internal sealed class NowPlayingModule : Module
             Log.Write($"Média, {reason} : affiché par le mini-lecteur ({state.AppName})");
             return;
         }
-        Log.Write($"Média, {reason} : {state.Artist} — {state.Title} ({state.AppName})");
+        Log.Write($"Média, {reason} : {state.AppName}");
         Host.ShowPlayer(Card(state));
         EnsureTicking();
     }

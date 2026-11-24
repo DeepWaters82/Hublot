@@ -69,6 +69,7 @@ internal sealed class XboxSource : DeviceSource
 
     private void OnAdded(object? sender, RawGameController controller)
     {
+        RecentGamepad.Seen(controller.HardwareVendorId);
         var state = Describe(controller, connected: true);
         lock (_lock)
         {
@@ -78,18 +79,20 @@ internal sealed class XboxSource : DeviceSource
                 && now - _lastAdded.At < 2000)
             {
                 _twins.Add(state.Key); // même manette vue une seconde fois : ni carte, ni liste
+                Log.Write($"Manette en double ignorée : {state.Name} ({controller.HardwareVendorId:X4}:{controller.HardwareProductId:X4})");
                 return;
             }
             _lastAdded = (controller.HardwareVendorId, controller.HardwareProductId, now);
             _controllers[state.Key] = (state, now);
             if (replay) return;
         }
-        Log.Write($"Manette connectée : {state.Name} batterie={state.Battery}");
+        Log.Write($"Manette connectée : {state.Name} ({controller.HardwareVendorId:X4}:{controller.HardwareProductId:X4}, {(controller.IsWireless ? "sans fil" : "USB")}) batterie={state.Battery}");
         Raise(state, connectionChanged: true);
     }
 
     private void OnRemoved(object? sender, RawGameController controller)
     {
+        RecentGamepad.Seen(controller.HardwareVendorId);
         string key = KeyOf(controller);
         DeviceState state;
         lock (_lock)

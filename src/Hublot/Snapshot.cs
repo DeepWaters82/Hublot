@@ -150,6 +150,82 @@ internal static class Snapshot
             }
             board.SavePng(Path.Combine(directory, "album-colors.png"));
         }
+
+        // Caféine : cartes (survol, avertissement, extinction) en clair et en sombre, puis tasses de la zone de notification.
+        {
+            (Modules.Caffeine.CaffeineSnapshot State, Modules.Caffeine.CaffeineCardKind Kind)[] states =
+            [
+                (new(Modules.Caffeine.CaffeineMode.Indefinite, null, 1, true), Modules.Caffeine.CaffeineCardKind.Status),
+                (new(Modules.Caffeine.CaffeineMode.Timed, TimeSpan.FromMinutes(83), 0.55f, true), Modules.Caffeine.CaffeineCardKind.Status),
+                (new(Modules.Caffeine.CaffeineMode.Shutdown, TimeSpan.FromMinutes(4.5), 0.08f, true), Modules.Caffeine.CaffeineCardKind.Warning),
+                (new(Modules.Caffeine.CaffeineMode.Off, null, 1, true), Modules.Caffeine.CaffeineCardKind.Status),
+            ];
+            int m = PopupRenderer.ShadowMargin(scale);
+            int w = (int)MathF.Round(360 * scale), h = (int)MathF.Round(96 * scale);
+            using var sheet = new Canvas(2 * (w + m) + m, states.Length * (h + m) + m + (int)(80 * scale));
+            sheet.Fill(0xFF808890);
+            for (int col = 0; col < 2; col++)
+            for (int row = 0; row < states.Length; row++)
+            {
+                var theme = themes[col].Theme;
+                var card = new RectF(m + col * (w + m), m + row * (h + m), w, h);
+                sheet.FillRoundRect(card, PopupRenderer.CornerRadius * scale, theme.Background);
+                var (state, kind) = states[row];
+                new Modules.Caffeine.CaffeineCard(() => state, kind).Draw(new CardContext(sheet, card, theme, scale,
+                    Stopwatch.GetTimestamp(), new AnimClock(false, 1), -1, settings));
+            }
+            // Tasses : 16, 20, 24, 32 px × (désactivé, pleine, moitié, vide, extinction, fumée), agrandies ×2, fond sombre.
+            int y0 = states.Length * (h + m) + m, x = m;
+            foreach (int size in new[] { 16, 20, 24, 32 })
+            {
+                foreach (var (level, fill, steam) in new[] { (-1f, 0xFF60CDFFu, -1f), (1f, 0xFF60CDFFu, -1f), (0.5f, 0xFF60CDFFu, -1f), (0f, 0xFF60CDFFu, -1f), (1f, 0xFFFF9A3Cu, -1f), (1f, 0xFF60CDFFu, 0.45f) })
+                {
+                    sheet.FillRoundRect(new RectF(x - 2, y0 - 2, size * 2 + 4, size * 2 + 4), 3, 0xFF202020);
+                    Modules.Caffeine.CaffeineIcon.Draw(sheet, new RectF(x, y0, size * 2, size * 2), level, fill, 0xFFFFFFFF, steam);
+                    x += size * 2 + 10;
+                }
+                x += 16;
+            }
+            sheet.SavePng(Path.Combine(directory, "cafeine.png"));
+        }
+
+        // Transferts de fichiers : en cours (bouton pause survolé), en pause, conflit de noms, terminé, deux opérations.
+        {
+            var noop = new Modules.Transfers.TransferActions(_ => { }, _ => { }, _ => { }, (_, _) => { });
+            var two = Modules.Transfers.TransfersModule.Sample(percent: 18);
+            var second = Modules.Transfers.TransfersModule.Sample(percent: 81)[0];
+            two.Add(second with
+            {
+                Tile = second.Tile with { Key = "b", Operation = L.English ? "Moving 1 item" : "Déplacement de 1 élément", Kind = Modules.Transfers.TransferKind.Move, Target = "Documents", ItemName = "Rapport annuel.pdf" },
+            });
+            (List<Modules.Transfers.TransferView> Views, int Hover)[] states =
+            [
+                (Modules.Transfers.TransfersModule.Sample(), 1),
+                (Modules.Transfers.TransfersModule.Sample(Modules.Transfers.TransferPhase.Paused, 47), -1),
+                (Modules.Transfers.TransfersModule.Sample(percent: 26, conflict: true), 4),
+                (Modules.Transfers.TransfersModule.Sample(Modules.Transfers.TransferPhase.Done), -1),
+                (two, -1),
+            ];
+            int m = PopupRenderer.ShadowMargin(scale);
+            int w = (int)MathF.Round(400 * scale);
+            var heights = states.Select(s => (int)MathF.Round(new Modules.Transfers.TransferCard(s.Views, noop, true).Height * scale)).ToArray();
+            using var sheet = new Canvas(2 * (w + m) + m, heights.Sum() + (states.Length + 1) * m);
+            sheet.Fill(0xFF808890);
+            for (int col = 0; col < 2; col++)
+            {
+                int y = m;
+                for (int row = 0; row < states.Length; row++)
+                {
+                    var theme = themes[col].Theme;
+                    var card = new RectF(m + col * (w + m), y, w, heights[row]);
+                    sheet.FillRoundRect(card, PopupRenderer.CornerRadius * scale, theme.Background);
+                    new Modules.Transfers.TransferCard(states[row].Views, noop, true).Draw(new CardContext(sheet, card, theme, scale,
+                        Stopwatch.GetTimestamp(), new AnimClock(false, 1), states[row].Hover, settings));
+                    y += heights[row] + m;
+                }
+            }
+            sheet.SavePng(Path.Combine(directory, "transferts.png"));
+        }
     }
 
     /// <summary>Pochette de démonstration « illustrée » : dégradé vertical et disque (soleil) d'une troisième couleur.</summary>

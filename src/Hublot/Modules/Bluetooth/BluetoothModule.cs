@@ -189,10 +189,18 @@ internal sealed class BluetoothModule : Module
         // Doublons : appareil bimode (deux nœuds Bluetooth), manette vue à la fois en Bluetooth
         // et par Windows.Gaming.Input… même nom ou même clé, même état, à quelques secondes d'écart.
         if (Host.CurrentNotification is DeviceCard { State: var current } && current.Connected == state.Connected
-            && (current.Key == state.Key || current.Name == state.Name)) return;
+            && (current.Key == state.Key || current.Name == state.Name))
+        {
+            Log.Write($"Doublon ignoré (carte affichée) : {state.Name}");
+            return;
+        }
         long now = Environment.TickCount64;
         if (_lastEvent.Connected == state.Connected && now - _lastEvent.At < DuplicateWindowMs
-            && (_lastEvent.Key == state.Key || _lastEvent.Name == state.Name)) return;
+            && (_lastEvent.Key == state.Key || _lastEvent.Name == state.Name))
+        {
+            Log.Write($"Doublon ignoré (< 4 s) : {state.Name}");
+            return;
+        }
         _lastEvent = (state.Key, state.Name, state.Connected, now);
 
         // Claviers (MX Keys…) et, en option, souris : ils coupent la liaison après quelques minutes sans être

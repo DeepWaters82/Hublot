@@ -91,6 +91,18 @@
                         <TextBlock Text="{local:Tr Ecrans}" Margin="14,0,0,0" VerticalAlignment="Center" />
                     </StackPanel>
                 </ListBoxItem>
+                <ListBoxItem Tag="Caffeine">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xEC32;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr Caf.Name}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem Tag="Transfers">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8C8;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
+                        <TextBlock Text="{local:Tr Xfer.Name}" Margin="14,0,0,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
                 <ListBoxItem Tag="Audio" Visibility="Collapsed">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE7F6;" FontFamily="{StaticResource IconFont}" FontSize="16" VerticalAlignment="Center" />
@@ -209,6 +221,38 @@
                                     <Button Content="{local:Tr Configurer}" Tag="Displays" Click="OnConfigure" Padding="12,4" Margin="0,10,0,0" HorizontalAlignment="Left" />
                                 </StackPanel>
                                 <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleDisplays}" VerticalAlignment="Top" />
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Padding="20,18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource AccentFillColorDefaultBrush}" VerticalAlignment="Top" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleCaffeine}"><TextBlock Text="&#xEC32;" FontFamily="{StaticResource IconFont}" FontSize="24" Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,16,0" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleCaffeine}">
+                                    <TextBlock Text="{local:Tr Caf.Name}" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Text="{local:Tr Caf.Tile}" Style="{StaticResource Secondary}" FontSize="13" Margin="0,4,0,0" />
+                                    <Button Content="{local:Tr Configurer}" Tag="Caffeine" Click="OnConfigure" Padding="12,4" Margin="0,10,0,0" HorizontalAlignment="Left" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleCaffeine}" VerticalAlignment="Top" />
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource CardBorder}" Padding="20,18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="48" Height="48" CornerRadius="12" Background="{DynamicResource AccentFillColorDefaultBrush}" VerticalAlignment="Top" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleTransfers}"><TextBlock Text="&#xE8C8;" FontFamily="{StaticResource IconFont}" FontSize="24" Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" /></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="18,0,16,0" Style="{StaticResource ModuleDim}" Tag="{Binding ModuleTransfers}">
+                                    <TextBlock Text="{local:Tr Xfer.Name}" FontSize="16" FontWeight="SemiBold" />
+                                    <TextBlock Text="{local:Tr Xfer.Tile}" Style="{StaticResource Secondary}" FontSize="13" Margin="0,4,0,0" />
+                                    <Button Content="{local:Tr Configurer}" Tag="Transfers" Click="OnConfigure" Padding="12,4" Margin="0,10,0,0" HorizontalAlignment="Left" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="2" Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleTransfers}" VerticalAlignment="Top" />
                             </Grid>
                         </Border>
                         <!-- Module « Prise audio » mis de côté (3.7.2) : tuile, entrée de navigation et page masquées. -->
@@ -713,6 +757,107 @@
                         </local:SettingsCard>
                         <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="2,12,0,0"
                                    Text="{local:Tr AuReveilDuPcLes}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ═══ Caféine ═══ -->
+                    <StackPanel x:Name="CaffeinePage" Visibility="Collapsed">
+                        <DockPanel Margin="0,0,0,20">
+                            <Button DockPanel.Dock="Right" Padding="14,6" Click="OnPreviewCaffeine" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                    <TextBlock Text="{local:Tr Apercu}" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Text="{local:Tr Caf.Name}" Style="{StaticResource PageTitle}" Margin="0" />
+                        </DockPanel>
+                        <local:SettingsCard Icon="&#xEC32;" Header="{local:Tr Caf.Module}" Description="{local:Tr Caf.ModuleDescription}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleCaffeine}" />
+                        </local:SettingsCard>
+                        <Border Style="{StaticResource ModuleOffNotice}" Tag="{Binding ModuleCaffeine}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <TextBlock Text="{local:Tr ModuleDesactive}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Style="{StaticResource ModuleOptions}" IsEnabled="{Binding ModuleCaffeine}">
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="2,0,0,8" TextWrapping="Wrap" Text="{local:Tr Caf.Help}" />
+
+                        <TextBlock Text="{local:Tr Caf.Section.Awake}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE7F4;" Header="{local:Tr Caf.Menu.Display}" Description="{local:Tr Caf.DisplayDescription}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding CaffeineKeepDisplay}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE7BA;" Header="{local:Tr Caf.Warning}" Description="{local:Tr Caf.WarningDescription}">
+                            <ComboBox SelectedIndex="{Binding CaffeineWarningIndex}" Width="140" VerticalAlignment="Center">
+                                <ComboBoxItem Content="1 min" /><ComboBoxItem Content="2 min" /><ComboBoxItem Content="5 min" />
+                                <ComboBoxItem Content="10 min" /><ComboBoxItem Content="15 min" />
+                            </ComboBox>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE916;" Header="{local:Tr Caf.DefaultDuration}" Description="{local:Tr Caf.DefaultDurationDescription}">
+                            <ComboBox SelectedIndex="{Binding CaffeineDefaultIndex}" Width="140" VerticalAlignment="Center">
+                                <ComboBoxItem Content="15 min" /><ComboBoxItem Content="30 min" /><ComboBoxItem Content="1 h" />
+                                <ComboBoxItem Content="2 h" /><ComboBoxItem Content="4 h" /><ComboBoxItem Content="8 h" />
+                            </ComboBox>
+                        </local:SettingsCard>
+
+                        <TextBlock Text="{local:Tr Caf.Section.Hotkeys}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE765;" Header="{local:Tr Caf.Menu.Indefinite}" Description="{local:Tr Caf.HkIndefiniteDescription}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Tag="Caffeine.Indefinite" Width="190" IsReadOnly="True" Text="{Binding CaffeineHotkeyIndefiniteText, Mode=OneWay}" TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,16,0" Cursor="Hand" PreviewKeyDown="OnHotkeyKeyDown" IsEnabled="{Binding CaffeineHotkeyIndefiniteEnabled}" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding CaffeineHotkeyIndefiniteEnabled}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE765;" Header="{local:Tr Caf.Menu.Timed}" Description="{local:Tr Caf.HkTimedDescription}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Tag="Caffeine.Timed" Width="190" IsReadOnly="True" Text="{Binding CaffeineHotkeyTimedText, Mode=OneWay}" TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,16,0" Cursor="Hand" PreviewKeyDown="OnHotkeyKeyDown" IsEnabled="{Binding CaffeineHotkeyTimedEnabled}" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding CaffeineHotkeyTimedEnabled}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE765;" Header="{local:Tr Caf.Menu.Shutdown}" Description="{local:Tr Caf.HkShutdownDescription}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Tag="Caffeine.Shutdown" Width="190" IsReadOnly="True" Text="{Binding CaffeineHotkeyShutdownText, Mode=OneWay}" TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,16,0" Cursor="Hand" PreviewKeyDown="OnHotkeyKeyDown" IsEnabled="{Binding CaffeineHotkeyShutdownEnabled}" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding CaffeineHotkeyShutdownEnabled}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE765;" Header="{local:Tr Caf.Menu.Off}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Tag="Caffeine.Off" Width="190" IsReadOnly="True" Text="{Binding CaffeineHotkeyOffText, Mode=OneWay}" TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,16,0" Cursor="Hand" PreviewKeyDown="OnHotkeyKeyDown" IsEnabled="{Binding CaffeineHotkeyOffEnabled}" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding CaffeineHotkeyOffEnabled}" />
+                            </StackPanel>
+                        </local:SettingsCard>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- ═══ Transferts de fichiers ═══ -->
+                    <StackPanel x:Name="TransfersPage" Visibility="Collapsed">
+                        <DockPanel Margin="0,0,0,20">
+                            <Button DockPanel.Dock="Right" Padding="14,6" Click="OnPreviewTransfers" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" FontSize="13" VerticalAlignment="Center" />
+                                    <TextBlock Text="{local:Tr Apercu}" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock Text="{local:Tr Xfer.Name}" Style="{StaticResource PageTitle}" Margin="0" />
+                        </DockPanel>
+                        <local:SettingsCard Icon="&#xE8C8;" Header="{local:Tr Xfer.Module}" Description="{local:Tr Xfer.ModuleDescription}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding ModuleTransfers}" />
+                        </local:SettingsCard>
+                        <Border Style="{StaticResource ModuleOffNotice}" Tag="{Binding ModuleTransfers}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                <TextBlock Text="{local:Tr ModuleDesactive}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Style="{StaticResource ModuleOptions}" IsEnabled="{Binding ModuleTransfers}">
+                        <TextBlock Style="{StaticResource Secondary}" FontSize="13" Margin="2,0,0,8" TextWrapping="Wrap" Text="{local:Tr Xfer.Help}" />
+
+                        <TextBlock Text="{local:Tr Xfer.Section.Card}" Style="{StaticResource SectionHeader}" />
+                        <local:SettingsCard Icon="&#xE769;" Header="{local:Tr Xfer.Controls}" Description="{local:Tr Xfer.ControlsDescription}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding TransferControls}" />
+                        </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE8A5;" Header="{local:Tr Xfer.Expand}" Description="{local:Tr Xfer.ExpandDescription}">
+                            <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding TransferExpandDetails}" />
+                        </local:SettingsCard>
                         </StackPanel>
                     </StackPanel>
 

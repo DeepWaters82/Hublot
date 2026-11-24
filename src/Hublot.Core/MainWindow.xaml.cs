@@ -59,6 +59,8 @@ public partial class MainWindow : Window
             ["General"] = GeneralPage,
             ["NowPlaying"] = NowPlayingPage,
             ["Usb"] = UsbPage,
+            ["Caffeine"] = CaffeinePage,
+            ["Transfers"] = TransfersPage,
             ["Audio"] = AudioPage,
             ["Power"] = PowerPage,
             ["Displays"] = DisplaysPage,
@@ -327,7 +329,9 @@ public partial class MainWindow : Window
         if (modifiers == 0) return;
 
         // Même saisie pour les deux raccourcis : Tag="Pinned" = celui du mini-lecteur.
-        if (sender is FrameworkElement { Tag: "Pinned" }) _vm.SetPinnedHotkey(modifiers, KeyInterop.VirtualKeyFromKey(key));
+        if (sender is FrameworkElement { Tag: string tag } && tag.StartsWith("Caffeine.", StringComparison.Ordinal))
+            _vm.SetCaffeineHotkey(tag["Caffeine.".Length..], modifiers, KeyInterop.VirtualKeyFromKey(key));
+        else if (sender is FrameworkElement { Tag: "Pinned" }) _vm.SetPinnedHotkey(modifiers, KeyInterop.VirtualKeyFromKey(key));
         else _vm.SetHotkey(modifiers, KeyInterop.VirtualKeyFromKey(key));
     }
 
@@ -342,6 +346,10 @@ public partial class MainWindow : Window
     private void OnPreviewPower(object sender, RoutedEventArgs e) => _vm.Preview(4);
 
     private void OnPreviewAudio(object sender, RoutedEventArgs e) => _vm.Preview(6);
+
+    private void OnPreviewCaffeine(object sender, RoutedEventArgs e) => _vm.Preview(7);
+
+    private void OnPreviewTransfers(object sender, RoutedEventArgs e) => _vm.Preview(8);
 
     private void OnPreviewDisplays(object sender, RoutedEventArgs e) => _vm.Preview(5);
 

@@ -4,9 +4,11 @@ using Hublot.Common;
 using Hublot.Interop;
 using Hublot.Modules;
 using Hublot.Modules.Bluetooth;
+using Hublot.Modules.Caffeine;
 using Hublot.Modules.NowPlaying;
 using Hublot.Modules.Power;
 using Hublot.Modules.Screens;
+using Hublot.Modules.Transfers;
 using Hublot.Modules.Usb;
 using Hublot.Shell;
 
@@ -23,7 +25,7 @@ internal sealed class App : IHost
     private readonly Popup _popup;
     private readonly ConcurrentQueue<Action> _work = new();
     /// <summary>Ordre d'affichage dans les listes : la lecture en cours d'abord, puis les appareils, puis les stockages USB.</summary>
-    private readonly Module[] _modules = [new NowPlayingModule(), new BluetoothModule(), new UsbModule(), new PowerModule(), new DisplayModule()];
+    private readonly Module[] _modules = [new NowPlayingModule(), new BluetoothModule(), new UsbModule(), new PowerModule(), new DisplayModule(), new CaffeineModule(), new TransfersModule()];
     // Module « Prise audio » (JackModule) mis de côté en 3.7.2 : détection incomplète sur les Realtek à prises
     // réaffectables. Code conservé ; diagnostic : Hublot.exe --audio / --audio-watch.
     private readonly HashSet<Module> _running = [];
@@ -32,6 +34,9 @@ internal sealed class App : IHost
     private CardContent? _pinnedWanted;
     /// <summary>Sortie en fondu demandée par Hublot (plein écran), pas par un clic : la carte reste demandée.</summary>
     private bool _pinnedFading;
+    /// <summary>Carte des transferts de fichiers : son propre popup déplaçable ; demandée par le module ; masquée le temps d'un plein écran.</summary>
+    private Popup? _transfers;
+    private bool _transfersWanted, _transfersFading;
     private Timer? _restyle, _updates;
 
     public App()
@@ -69,6 +74,7 @@ internal sealed class App : IHost
             {
                 _popup.Restyle();
                 _pinned?.Restyle();
+                _transfers?.Restyle();
             }));
             _restyle.Change(300, Timeout.Infinite);
         };
@@ -161,6 +167,7 @@ internal sealed class App : IHost
             Log.Write($"Popup ignoré (plein écran) : {card.LogName}");
             return;
         }
+        Log.Write($"Popup : {card.LogName}");
         _popup.Show(card);
     }
 
@@ -213,10 +220,106 @@ internal sealed class App : IHost
 
     public CardContent? CurrentNotification => _popup.Notification;
 
+    public void ShowHover(CardContent card, RECT icon)
+    {
+        if (_popup.Mode == PopupMode.List) return;
+        _popup.ShowHover(card, icon);
+    }
+
+    public void EndHover() => _popup.EndTrayHover();
+
     public void Invalidate()
     {
         _popup.Invalidate();
         _pinned?.Invalidate();
+        _transfers?.Invalidate();
+    }
+
+    // ── Carte des transferts de fichiers ───────────────────────────────────────────────────
+
+    /// <summary>
+    /// Affiche ou met à jour la carte des transferts (le module l'envoie à chaque lecture, une fois par seconde) ;
+    /// null pour la retirer. Plein écran (sans l'option générale) : la carte s'efface et revient à la lecture
+    /// suivante une fois sorti. Pas de silence au lancement : une copie en cours n'est pas un événement passé.
+    /// </summary>
+    public void ShowTransfers(CardContent? card)
+    {
+        if (card is null)
+        {
+            if (!_transfersWanted) return;
+            _transfersWanted = false;
+            _transfers?.Dismiss();
+            return;
+        }
+        var popup = TransfersPopup();
+        // Sortie en cours (fermée par l'utilisateur, ou retirée) : la mise à jour ne la fait pas revenir ; le
+        // module sait, une fois la carte masquée, si elle doit revenir (nouvelle opération).
+        if (popup.IsVisible && popup.PinnedCard is null && !_transfersFading) return;
+        _transfersWanted = true;
+        if (!_settings.ShowInFullscreen && UserIsBusy())
+        {
+            if (popup.PinnedCard is not null)
+            {
+                Log.Write("Transferts masqués (plein écran)");
+                _transfersFading = true;
+                popup.Dismiss();
+            }
+            return;
+        }
+        if (popup.PinnedCard is null) Log.Write($"Transferts affichés ({(card is TransferCard t ? t.Views.Count : 1)} opération(s))");
+        _transfersFading = false;
+        popup.ShowPinned(card);
+        UpdateReserve();
+    }
+
+    private Popup TransfersPopup()
+    {
+        if (_transfers is null)
+        {
+            _transfers = new Popup(_settings) { Draggable = true };
+            _transfers.ContextMenuRequested += OnCardMenu;
+            _transfers.Dropped += OnTransfersDropped;
+            _transfers.Hidden += () =>
+            {
+                if (_transfersFading)
+                {
+                    _transfersFading = false;
+                }
+                else if (_transfersWanted)
+                {
+                    // Fermée par l'utilisateur (clic droit › Fermer) : plus affichée jusqu'au prochain transfert.
+                    _transfersWanted = false;
+                    Running.OfType<TransfersModule>().FirstOrDefault()?.ClosedByUser();
+                }
+                UpdateReserve();
+                _tray.ScheduleTrim(1500);
+            };
+        }
+        _transfers.PositionOverride = _settings.TransferPosition;
+        _transfers.MonitorOverride = (_settings.TransferMonitor, _settings.TransferMonitorDevice);
+        return _transfers;
+    }
+
+    private void OnTransfersDropped(PopupPosition position, nint monitor)
+    {
+        if (_transfers is null) return;
+        var (kind, device) = MonitorChoice(monitor);
+        _settings.TransferPosition = position;
+        _settings.TransferMonitor = kind;
+        _settings.TransferMonitorDevice = device;
+        try
+        {
+            _settings.Save();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Enregistrement de l'emplacement des transferts", ex);
+        }
+        _transfers.PositionOverride = position;
+        _transfers.MonitorOverride = (kind, device);
+        _transfers.Settle();
+        UpdateReserve();
+        Log.Write($"Carte des transferts déplacée : {position} ({(kind == PopupMonitor.Primary ? "écran principal" : device)})");
     }
 
     // ── Carte épinglée (mini-lecteur) ──────────────────────────────────────────────────────
@@ -285,17 +388,10 @@ internal sealed class App : IHost
     /// Mini-lecteur déplacé à la souris : emplacement et écran enregistrés comme s'ils avaient été choisis dans
     /// les paramètres (écran principal, sinon cet écran précis), puis la carte s'y cale.
     /// </summary>
-    private unsafe void OnPinnedDropped(PopupPosition position, nint monitor)
+    private void OnPinnedDropped(PopupPosition position, nint monitor)
     {
         if (_pinned is null) return;
-        var info = new MONITORINFO { cbSize = (uint)sizeof(MONITORINFO) };
-        User32.GetMonitorInfoW(monitor, &info);
-        var (kind, device) = (PopupMonitor.Primary, "");
-        var (left, top) = (info.rcMonitor.Left, info.rcMonitor.Top);
-        if ((info.dwFlags & User32.MONITORINFOF_PRIMARY) == 0
-            && Displays.Active().FirstOrDefault(d => d.Left == left && d.Top == top) is { } display)
-            (kind, device) = (PopupMonitor.Specific, display.Path);
-
+        var (kind, device) = MonitorChoice(monitor);
         _settings.MediaPinnedPosition = position;
         _settings.MediaPinnedMonitor = kind;
         _settings.MediaPinnedMonitorDevice = device;
@@ -312,6 +408,18 @@ internal sealed class App : IHost
         _pinned.Settle();
         UpdateReserve();
         Log.Write($"Mini-lecteur déplacé : {position} ({(kind == PopupMonitor.Primary ? "écran principal" : device)})");
+    }
+
+    /// <summary>Écran où une carte a été lâchée, tel qu'il s'enregistre : écran principal, sinon cet écran précis.</summary>
+    private static unsafe (PopupMonitor Kind, string Device) MonitorChoice(nint monitor)
+    {
+        var info = new MONITORINFO { cbSize = (uint)sizeof(MONITORINFO) };
+        User32.GetMonitorInfoW(monitor, &info);
+        var (left, top) = (info.rcMonitor.Left, info.rcMonitor.Top);
+        if ((info.dwFlags & User32.MONITORINFOF_PRIMARY) == 0
+            && Displays.Active().FirstOrDefault(d => d.Left == left && d.Top == top) is { } display)
+            return (PopupMonitor.Specific, display.Path);
+        return (PopupMonitor.Primary, "");
     }
 
     /// <summary>Plein écran (notification du shell) : la carte épinglée s'efface, puis revient.</summary>
@@ -341,13 +449,34 @@ internal sealed class App : IHost
         _pinned.Dismiss();
     }
 
-    /// <summary>Carte épinglée au même emplacement que les popups : ceux-ci s'empilent au-dessus.</summary>
+    /// <summary>
+    /// Cartes au même emplacement, du coin vers le centre de l'écran : le lecteur, puis les transferts, puis les popups
+    /// (chacun s'empile au-delà des précédents). Les transferts déjà affichés glissent à leur nouvelle place.
+    /// </summary>
     private void UpdateReserve()
-        => _popup.ReservedDip = _pinned?.PinnedCard is { } card && _settings.MediaPinnedPosition == _settings.Position && SameScreen() ? card.Height + 8 : 0;
+    {
+        var s = _settings;
+        var popups = (s.Position, s.Monitor, s.MonitorDevice);
+        var player = (s.MediaPinnedPosition, s.MediaPinnedMonitor, s.MediaPinnedMonitorDevice);
+        var transfers = (s.TransferPosition, s.TransferMonitor, s.TransferMonitorDevice);
+        float playerDip = _pinned?.PinnedCard is { } p ? p.Height + 8 : 0;
+        float transfersDip = _transfers?.PinnedCard is { } t ? t.Height + 8 : 0;
 
-    /// <summary>Popups et carte épinglée sur le même écran (écran de la souris : inconnu d'avance, considéré différent).</summary>
-    private bool SameScreen() => _settings.Monitor == _settings.MediaPinnedMonitor
-        && (_settings.Monitor != PopupMonitor.Specific || _settings.MonitorDevice == _settings.MediaPinnedMonitorDevice);
+        _popup.ReservedDip = (SamePlace(player, popups) ? playerDip : 0) + (SamePlace(transfers, popups) ? transfersDip : 0);
+        if (_transfers is not null)
+        {
+            float reserve = SamePlace(player, transfers) ? playerDip : 0;
+            if (reserve != _transfers.ReservedDip)
+            {
+                _transfers.ReservedDip = reserve;
+                _transfers.Settle();
+            }
+        }
+    }
+
+    /// <summary>Même emplacement sur le même écran (écran de la souris : même réglage = même place).</summary>
+    private static bool SamePlace((PopupPosition Position, PopupMonitor Monitor, string Device) a, (PopupPosition Position, PopupMonitor Monitor, string Device) b)
+        => a.Position == b.Position && a.Monitor == b.Monitor && (a.Monitor != PopupMonitor.Specific || a.Device == b.Device);
 
     /// <summary>Clic droit sur une carte : paramètres de ce popup (page de Hublot Core du module), ou fermer.</summary>
     private void OnCardMenu(Popup popup, CardContent card)
@@ -458,6 +587,14 @@ internal sealed class App : IHost
             case 3: _popup.Show(usb[0]); break;
             case 4: _popup.Show(power[0]); break;
             case 5: ShowDisplays(); break;
+            case 7: _popup.Show(_modules.OfType<CaffeineModule>().First().PreviewCards().First()); break;
+            // Transferts : à leur emplacement, le temps d'une notification ; transferts réels affichés : par les popups.
+            case 8:
+                var transfer = _modules.OfType<TransfersModule>().First().PreviewCards().First();
+                if (_transfers?.PinnedCard is not null) _popup.Show(transfer);
+                else TransfersPopup().ShowPinned(transfer, temporary: true);
+                UpdateReserve();
+                break;
             default: _popup.Show(bluetooth[0]); break;
         }
     }
@@ -495,6 +632,22 @@ internal sealed class App : IHost
             }
             UpdateReserve();
         }
+        if (_transfers is not null)
+        {
+            _transfers.ApplySettings(_settings);
+            if (TransfersLayoutChanged(previous, _settings))
+            {
+                // Reposée à la prochaine lecture du module (dans la seconde), à sa nouvelle place.
+                _transfers.Reset();
+                _transfers.PositionOverride = _settings.TransferPosition;
+                _transfers.MonitorOverride = (_settings.TransferMonitor, _settings.TransferMonitorDevice);
+            }
+            else if (ColorsChanged(previous, _settings))
+            {
+                _transfers.Restyle();
+            }
+            UpdateReserve();
+        }
         ApplyHotkey();
         SyncModules();
         Log.Write("Paramètres rechargés");
@@ -504,6 +657,11 @@ internal sealed class App : IHost
     private static bool PinnedLayoutChanged(Settings a, Settings b) =>
         a.MediaPinnedPosition != b.MediaPinnedPosition || a.MediaPinnedMonitor != b.MediaPinnedMonitor
         || a.MediaPinnedMonitorDevice != b.MediaPinnedMonitorDevice || a.Margin != b.Margin
+        || a.Material != b.Material || a.Size != b.Size;
+
+    private static bool TransfersLayoutChanged(Settings a, Settings b) =>
+        a.TransferPosition != b.TransferPosition || a.TransferMonitor != b.TransferMonitor
+        || a.TransferMonitorDevice != b.TransferMonitorDevice || a.Margin != b.Margin
         || a.Material != b.Material || a.Size != b.Size;
 
     /// <summary>Réglages de couleur seulement : la carte est repeinte sur place.</summary>

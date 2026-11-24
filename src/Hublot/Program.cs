@@ -96,6 +96,42 @@ internal static class Program
             return 0;
         }
 
+        if (args.Length >= 2 && args[0] == "--transfers")
+        {
+            // --transfers FICHIER : fenêtres de progression de Windows ouvertes, telles que le module les lit (aucun clic).
+            var lines = new List<string>();
+            using var done = new ManualResetEventSlim();
+            int reads = 0;
+            using (var reader = new Modules.Transfers.TransferReader(tiles =>
+            {
+                lock (lines)
+                {
+                    // Seconde lecture : toutes les fenêtres signalées y figurent (la première peut partir avant).
+                    if (done.IsSet || ++reads < 2) return;
+                    foreach (var t in tiles)
+                        lines.Add($"{t.Operation} | {t.Kind} | {t.Source} → {t.Target} | {t.Percent} % | pause={t.Paused} | {t.ItemName} | "
+                            + $"{t.TimeLeft} | {t.ItemsLeft} ({t.BytesLeft} o) | graphique={t.ChartSpeed} | attente={t.Attention} | "
+                            + $"choix={string.Join(" / ", t.Choices.Select(c => $"{c.Id}={c.Label}"))} | détails masqués={t.DetailsHidden}");
+                    if (tiles.Count == 0) lines.Add("aucune vignette");
+                    done.Set();
+                }
+            }, expandDetails: false))
+            {
+                int windows = 0;
+                for (nint w = User32.FindWindowExW(0, 0, Modules.Transfers.TransferReader.WindowClass, null); w != 0;
+                     w = User32.FindWindowExW(0, w, Modules.Transfers.TransferReader.WindowClass, null))
+                {
+                    if (User32.IsWindowVisible(w) == 0) continue;
+                    reader.Watch(w);
+                    windows++;
+                }
+                if (windows == 0) lines.Add("aucune fenêtre de progression");
+                else done.Wait(10_000);
+            }
+            lock (lines) File.WriteAllLines(args[1], lines);
+            return 0;
+        }
+
         if (args.Length >= 2 && args[0] == "--gamepads")
         {
             // --gamepads FICHIER : manettes vues par Windows.Gaming.Input (la liste se remplit après quelques instants).

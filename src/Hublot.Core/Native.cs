@@ -70,6 +70,13 @@ internal static class Native
     [DllImport("shcore.dll")]
     private static extern int GetDpiForMonitor(nint monitor, int type, out uint dpiX, out uint dpiY);
 
+    /// <summary>Durée choisie pour Caféine (1 = garder éveillé, 2 = éteindre le PC) ; faux si le service ne tourne pas.</summary>
+    public static bool PostCaffeine(int mode, int minutes)
+    {
+        var window = FindWindowW(Settings.CaffeineWindowClass, null);
+        return window != 0 && PostMessageW(window, RegisterWindowMessageW(Settings.CaffeineMessage), mode, minutes);
+    }
+
     private static void Post(string message, nint wParam = 0)
     {
         var host = FindWindowW(Settings.HostWindowClass, null);

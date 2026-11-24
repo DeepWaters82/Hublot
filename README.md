@@ -20,6 +20,8 @@ on or off.
 | **USB devices** | Name and state of USB devices; free and used space for drives. |
 | **Displays** | Real name, connection (HDMI, DisplayPort, VGA, USB-C…) and resolution of a display when it is plugged in or unplugged. |
 | **Power** | PC name and battery level when a laptop is plugged in or unplugged, charge-level and low-battery alerts. |
+| **Caffeine** | Keeps the PC awake — indefinitely, for a chosen time (the tray cup empties as time runs out), or until a scheduled shutdown. Hover for the time left, a warning popup before the end, optional keyboard shortcuts. |
+| **File transfers** | File Explorer copies in a movable card: source, destination, progress, speed with its graph, current file, time and items left; pause, cancel and name conflicts right from the card. |
 
 <p>
   <img src="docs/screenshots/wireless-device.png" width="400" alt="Wireless device card">
@@ -89,7 +91,8 @@ All interface texts, in French and English, live in [`src/Hublot/Common/Strings.
 Architecture notes (in French): [CLAUDE.md](CLAUDE.md).
 
 **Release:** set the same `<Version>` in both `.csproj` files, then push a matching tag (`git tag v3.1.0 && git push --tags`):
-GitHub Actions builds `Hublot-Setup.exe` and attaches it to the release.
+GitHub Actions builds `Hublot-Setup.exe` and attaches it to the release, and builds the Store package
+(`Hublot-<version>.msix`, workflow artifact *store-package*) for upload to Partner Center.
 
 ## License
 

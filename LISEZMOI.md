@@ -10,6 +10,8 @@ Des modules visuels pour Windows, au plus près du **Fluent Design** de Windows 
 | **Périphériques USB** | Nom et état de chaque périphérique USB branché / débranché ; pour les clés, disques et cartes mémoire, espace utilisé et restant avec une jauge. |
 | **Écrans** | Nom réel, connectique (HDMI, DisplayPort, VGA, USB-C…) et résolution d'un écran branché ou débranché. |
 | **Alimentation** | Nom du PC et charge de la batterie quand le PC portable est branché sur secteur ou débranché (en charge, autonomie restante). |
+| **Caféine** | Empêche la mise en veille : indéfiniment, pendant une durée choisie, ou jusqu'à l'extinction programmée du PC. Une tasse dans la zone de notification. |
+| **Transferts de fichiers** | Les copies de l'Explorateur dans une carte déplaçable : source, destination, progression, vitesse et graphique, temps restant, pause, annulation, conflits de noms. |
 
 ## Installation
 
@@ -97,6 +99,39 @@ paramètres) et *Fermer*.
   elle descend sous un seuil sur batterie (20 % par défaut, désactivé). Une alerte par franchissement.
 - Un débranchement de moins d'une seconde (câble mal enfoncé) ne déclenche rien. L'autonomie
   restante s'affiche quand Windows l'a déjà estimée (souvent pas dans les premières secondes).
+
+## Caféine : ce qu'il faut savoir
+
+- Une **tasse** dans la zone de notification, aux couleurs d'accentuation de Windows, à côté de l'icône
+  de Hublot. **Clic** : active / désactive (actif indéfiniment). Une courte fumée s'en échappe à l'activation.
+- **Clic droit** : *Actif indéfiniment*, *Maintenir actif pendant* (15 min à 8 h, ou *Autre durée…*),
+  *Éteindre le PC dans* (15 min à 4 h, ou *Autre durée…*), *Désactiver le mode Caféine*, *Garder l'écran
+  allumé*, *Paramètres de Caféine…*.
+- **Durée** : la tasse se vide au fil du temps (pleine, à moitié, vide), puis Caféine se désactive et Windows
+  reprend sa mise en veille habituelle. **Extinction programmée** : la tasse est orange ; à l'échéance,
+  Windows s'éteint après un dernier délai d'une minute (popup cliquable pour annuler).
+- **Survol** de la tasse : temps restant, avec un anneau qui se vide.
+- **Popup d'avertissement** quelques minutes avant la fin (5 par défaut, réglable) : un clic prolonge de
+  30 min, ou annule l'extinction.
+- **Garder l'écran allumé** (activé par défaut) : sinon, l'écran peut s'éteindre, le PC ne se met pas en veille.
+- **Raccourcis clavier** (désactivés par défaut) pour chaque mode : Ctrl + Alt + Maj + K (indéfiniment),
+  T (durée par défaut, 1 h), E (extinction), X (désactiver).
+- Caféine ne modifie aucun réglage d'alimentation de Windows : quitter Hublot rend la main à Windows.
+
+## Transferts de fichiers : ce qu'il faut savoir
+
+- Quand Windows affiche sa fenêtre de copie (copie, déplacement, suppression dans l'Explorateur), une **carte**
+  la reprend : opération, source → destination, pourcentage, **vitesse et son graphique**, fichier en cours,
+  temps et éléments restants. Plusieurs transferts : une section chacun (trois au plus).
+- **Glisser** la carte la déplace (coins, haut ou bas au centre, autre écran) ; Hublot retient l'emplacement
+  (en haut à droite par défaut).
+- **Boutons** pause / reprise et annuler (désactivables). **Clic** sur la carte : la fenêtre de Windows au
+  premier plan. **Clic droit › Fermer** : masquée jusqu'au prochain transfert.
+- **Conflit de noms** : la carte passe en ambre et propose les choix de Windows (*Remplacer*, *Ignorer*, *Me
+  laisser décider*). En pause : ambre aussi ; terminé : vert, quelques secondes.
+- La fenêtre de Windows reste affichée : Hublot la lit (UI Automation) sans la remplacer. En mode *Moins de
+  détails*, Hublot l'agrandit une fois pour lire le nom, le temps et les éléments restants (option).
+- Aucune lecture sans transfert : Hublot est prévenu par Windows quand la fenêtre de copie s'affiche.
 
 ## Écrans, démarrage, claviers en veille
 

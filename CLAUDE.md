@@ -46,6 +46,8 @@ src/Hublot/
     Usb/               UsbModule (périphériques + volumes), UsbCard / UsbRow, Volumes (API Win32)
     Power/             PowerModule (secteur / batterie), PowerCard, PowerState
     Screens/           DisplayModule (écrans branchés / débranchés), DisplayCard
+    Caffeine/          CaffeineModule (anti-veille, extinction programmée), CaffeineTray, CaffeineCard
+    Transfers/         TransfersModule (copies de l'Explorateur), TransferReader (UI Automation), TransferCard
   Interop/             P/Invoke (LibraryImport)
 ```
 
@@ -71,7 +73,8 @@ src/Hublot/
 - Cartes d'appareils (Bluetooth, USB, alimentation) : **aucune animation interne** (demande utilisateur) —
   ni rebond de tuile, ni jauge qui se remplit, ni pourcentage qui défile ; seule l'entrée / sortie de la carte.
 - Messages de Hublot Core → service : `Hublot.SettingsChanged`, `Hublot.Preview`
-  (wParam 0 = carte d'appareil, 1 = liste, 2 = lecture en cours, 3 = USB, 4 = alimentation), fenêtre `Hublot.Host`.
+  (wParam 0 = carte d'appareil, 1 = liste, 2 = lecture en cours, 3 = USB, 4 = alimentation, 5 = écrans, 7 = Caféine,
+  8 = transferts), fenêtre `Hublot.Host`.
 
 ## Module « Lecture en cours »
 
@@ -312,6 +315,15 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
   FF/47 Xbox One, ou fonction HID « HID_DEVICE_SYSTEM_GAME » / UP:0001_U:0004-0005, enfants lus aussi pour un
   périphérique HID) et n'affiche rien si la source Manettes est active (`GamepadsShownElsewhere`) : deux cartes à
   70 ms d'écart (« Controller (Generic) » et « Contrôleur XBOX 360 pour Windows ») se remplaçaient au hasard.
+- **3.8.4** : journal sans titre ni artiste (ce qu'on regarde dans le navigateur, recherches YouTube…) ; lignes de
+  diagnostic des manettes (VID:PID, doublons ignorés) et « Popup : nom » à chaque affichage. Doublon de manette sur
+  dongle signalé seulement avec « stockages uniquement » coché.
+- **3.8.5** : le doublon venait du dongle GameSir 3537:1040, qui change de mode à chaque branchement (« Périphérique
+  d’entrée USB » qui disparaît, puis « XBOX 360 For Windows » avec un clavier ; l’inverse au débranchement) : deux ou
+  trois cartes USB s’ajoutaient à la carte de la manette, et la vérification « carte affichée » échouait (une carte
+  USB l’avait déjà remplacée). `Modules/RecentGamepad` : la source Manettes note chaque connexion / déconnexion
+  (fabricant, instant) ; le module USB ignore un périphérique non stockage du même fabricant dans les 5 s, ou de
+  n’importe quel fabricant dans les 2,5 s (à l’annonce différée et au débranchement).
 - **3.8.3** : journal sans identifiant matériel (`CardContent.LogName` = nom de l'appareil, plus d'adresse
   Bluetooth ni de chemin PnP) ; module USB : carte d'un périphérique autre qu'un stockage différée de 1,5 s et
   abandonnée si une `DeviceCard` non Bluetooth (manette, souris sur dongle) s'affiche, au branchement comme au
@@ -326,6 +338,71 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
   `Hublot.exe --snapshot DOSSIER 1.5 en` → `sombre-12.png` = `audio-jack.png` (et `album-colors.png`, planche
   de contrôle Windows / pochette). Section « Album art colors » du README : captures réelles du lecteur
   fournies par l'utilisateur (`album-colors-1.png` à `-6.png`).
+
+## Module « Caféine » (3.9.0)
+
+- `Modules/Caffeine/` : `CaffeineModule` (modes `Off` / `Indefinite` / `Timed` / `Shutdown`), `CaffeineTray`
+  (fenêtre à part, classe `Hublot.Caffeine`, icône id 1 — **seconde icône** dans la zone de notification),
+  `CaffeineCard` (états `Status` / `Warning` / `ShuttingDown`), `CaffeineIcon` (tasse sur grille de 16).
+- Éveil : `SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED [| ES_DISPLAY_REQUIRED])` sur le thread
+  UI (l'état est lié au thread) ; `ES_CONTINUOUS` seul pour rendre la main. Aucun réglage d'alimentation modifié.
+- **Aucun sondage** : un seul minuteur reprogrammé sur le prochain instant utile (fin, passages à 2/3 et 1/3 =
+  changement de niveau de la tasse, avertissement `CaffeineWarningMinutes`) ; ticks de 1 s seulement pendant le
+  survol (+ 4 s après). Survol : `IHost.ShowHover(card, rect)` / `EndHover` (même popup que le survol de Hublot).
+- Extinction : `shutdown.exe /s /t 60 /d p:0:0 /c "…"` à l'échéance, popup cliquable → `shutdown.exe /a`.
+  Clic sur l'avertissement : +30 min (durée) ou annulation (extinction).
+- Couleurs : accentuation (`TrayIconRenderer.TrayColors`), extinction orange (`CaffeineIcon.ShutdownColor`) ;
+  redessin à `ImmersiveColorSet`, recréation à `TaskbarCreated`. Fumée : images de 60 ms pendant 1,6 s.
+- Raccourcis : `RegisterHotKey` ids 1–4 sur la fenêtre Caféine, `(mods << 16) | vk`, désactivés par défaut
+  (Ctrl + Alt + Maj + K / T / E / X).
+- « Autre durée… » : le service lance `HublotCore.exe --caffeine timed|shutdown` (`CaffeineDurationDialog`) qui
+  répond par le message `Hublot.Caffeine` (wParam 1 = durée, 2 = extinction ; lParam = minutes) à la classe
+  `Hublot.Caffeine` (`Native.PostCaffeine`).
+- `CaffeineKeepDisplay` est aussi écrit par le service (menu) : recopié par `SyncServiceOwned`.
+- `Stop()` détruit la fenêtre (`DestroyHandle`), sinon une réactivation laisserait une seconde fenêtre.
+- Aperçu : `Hublot.Preview` wParam 7 ; planche `--snapshot` → `cafeine.png`. Journal : chaque changement de mode,
+  résultat de `SetThreadExecutionState`, extinction / annulation.
+- **Non testé en vrai** au moment de l'écriture : menu, survol, raccourcis, extinction (seuls le rendu des cartes,
+  de la tasse et la page des paramètres ont été vérifiés sur capture).
+
+## Module « Transferts de fichiers » (3.9.0)
+
+- Windows ne publie **aucune API** de progression des copies : on lit la fenêtre `OperationStatusWindow` (Explorateur,
+  ou toute application qui copie par le shell — `Shell.Application.CopyHere` l'héberge dans son propre processus)
+  par **UI Automation** (`Interop/UiAutomation.cs`, COM par la table de méthodes, indices vérifiés dans
+  UIAutomationClient.h ; client créé à la première fenêtre, `UIAutomationCore.dll` chargée seulement alors).
+- Détection : `SetWinEventHook(EVENT_OBJECT_SHOW)` hors processus (rappel `[UnmanagedCallersOnly]` reçu par la boucle de
+  messages), filtre `OBJID_WINDOW` + classe ; fenêtres déjà ouvertes reprises au démarrage (`FindWindowExW`).
+- `TransferReader` : thread à lui (MTA ; un appel UIA vers une fenêtre figée peut bloquer), dort sans fenêtre, puis
+  1 lecture / s (2,5 s si tout est en pause ou en attente), publie chaque lecture (`Host.Post`). Arbre brut parcouru
+  (≈ 20 éléments par vignette `OperationTileDialog`), éléments repérés par **AutomationId** (indépendants de la langue) :
+  `eltStartText`, `eltFirstLocation`, `eltSecondLocation`, `eltSummary` (« 20% terminé » / « En pause - 46% terminé » :
+  pause = un état avant le nombre), `eltRateChart_New` (nom = « … ; vitesse : 2,91 Go par seconde », **rarement
+  actualisé**), `eltItemName`, `eltTimeRemaining`, `eltItemsRemaining` (« 9 (29,8 Go) »), `eltPauseButton`,
+  `eltCancelButton` ; fenêtre : `eltDisplayModeBtn`. Conflit de noms : plus de résumé, `eltConflictInterruptDescription`
+  + boutons `IdTileKeepSource` / `IdTileKeepDest` / `IdTileDecideForEach` (libellés de Windows repris tels quels).
+  Mode « Moins de détails » : nom, temps et éléments absents → option `TransferExpandDetails` (clic sur
+  `eltDisplayModeBtn`, **une fois par fenêtre**). Relevés du 24/11/2026 sur Windows 11 26300 en français.
+- Clics (pause, annuler, choix) : file de commandes exécutée par le thread de lecture, relecture 350 ms après ; la pause
+  est affichée tout de suite (`PauseTarget`, 2,5 s au plus).
+- Vitesse : octets restants qui diminuent sur 5 s (Windows arrondit à 0,1 Go : une lecture sans changement garde la
+  vitesse précédente), sinon pour cent par seconde ; mémorisée par pour cent de progression → graphique (`History`, 101
+  cases). À défaut, la vitesse du graphique de Windows.
+- Fin : vignette disparue à 90 % ou plus (ni annulée, ni en attente) → « Terminé » 3 s ; sinon retirée.
+- Carte : `IHost.ShowTransfers(card | null)`, popup à part dans `App` (`_transfers`, `Draggable`, `PopupMode.Pinned`),
+  emplacement `TransferPosition` / `TransferMonitor(Device)` (défaut en haut à droite) enregistré par le service au
+  lâcher (`OnTransfersDropped`, `MonitorChoice` partagé avec le lecteur), recopié par `SyncServiceOwned`. Empilement
+  au même emplacement : lecteur, puis transferts, puis popups (`UpdateReserve`). Plein écran : `UserIsBusy` à chaque
+  lecture. Clic droit › Fermer → `ClosedByUser` : masquée jusqu'à une nouvelle opération ; une mise à jour pendant la
+  sortie ne la fait pas revenir. Pas de silence au lancement.
+- `TransferCard` : 400 DIP, 200 par opération (3 au plus) ; accent en cours, `Caution` en pause / conflit, `Success`
+  terminé ; pourcentage animé entre deux lectures (450 ms). Parties : section × 100 + 0 (fenêtre de Windows au premier
+  plan), 1 pause, 2 annuler, 3+ choix.
+- Diagnostic : `Hublot.exe --transfers FICHIER` (fenêtres ouvertes telles que lues, aucun clic). Planche :
+  `--snapshot` → `transferts.png`. Aperçu : `Hublot.Preview` wParam 8.
+- Vérifié : lecture d'une copie réelle (en cours, en pause, conflit), pause / reprise / annulation / « Ignorer » par
+  UIA depuis un script, rendu de la carte. **Non testé en vrai** : la carte dans le service (affichage, glissement,
+  clics), une erreur autre qu'un conflit (accès refusé…), un Windows en anglais.
 
 ## Langues (français / anglais)
 
