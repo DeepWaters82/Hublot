@@ -36,6 +36,8 @@ internal sealed class TransfersModule : Module
     /// <summary>Opérations présentes quand l'utilisateur a fermé la carte : elle ne revient que pour une nouvelle.</summary>
     private readonly HashSet<string> _closed = [];
     private long _order;
+    /// <summary>La carte est demandée à l'écran (dernier rendu non vide, pas fermée depuis).</summary>
+    private bool _shown;
 
     private sealed class Track(TransferTile tile, long order)
     {
@@ -100,11 +102,37 @@ internal sealed class TransfersModule : Module
 
     public override IEnumerable<CardContent> PreviewCards() => [new TransferCard(Sample(), DemoActions, controls: true)];
 
-    /// <summary>La carte a été fermée par l'utilisateur (clic droit › Fermer) : masquée jusqu'à une nouvelle opération.</summary>
+    /// <summary>La carte a été fermée par l'utilisateur (clic droit › Fermer) : masquée jusqu'à une nouvelle opération ou au raccourci.</summary>
     public void ClosedByUser()
     {
         foreach (var key in _tracks.Keys) _closed.Add(key);
-        Log.Write("Transferts : carte fermée jusqu'au prochain transfert");
+        _shown = false;
+        Log.Write("Transferts : carte fermée jusqu'au prochain transfert ou au raccourci");
+    }
+
+    /// <summary>
+    /// Raccourci (Ctrl + Alt + T par défaut) : carte affichée → masquée, comme « Fermer » ; masquée → de nouveau
+    /// affichée. Aucun transfert en cours : un popup le dit.
+    /// </summary>
+    public void ToggleFromHotkey()
+    {
+        if (_host is null) return;
+        if (!_tracks.Values.Any(t => !t.Cancelled))
+        {
+            Host.Notify(new MessageCard("transfers-none", "", L.T("Xfer.Name"), L.T("Xfer.None")));
+            return;
+        }
+        if (_shown)
+        {
+            foreach (var key in _tracks.Keys) _closed.Add(key);
+            Log.Write("Transferts : carte masquée (raccourci)");
+        }
+        else
+        {
+            _closed.Clear();
+            Log.Write("Transferts : carte affichée (raccourci)");
+        }
+        Render();
     }
 
     /// <summary>Affichage d'une fenêtre, n'importe où dans le système (thread UI, par la boucle de messages).</summary>
@@ -220,10 +248,12 @@ internal sealed class TransfersModule : Module
 
         if (views.Count == 0 || views.All(v => _closed.Contains(v.Key)))
         {
+            _shown = false;
             Host.ShowTransfers(null);
             return;
         }
         if (views.Count > MaxShown) views = views.Take(MaxShown).ToList();
+        _shown = true;
         Host.ShowTransfers(new TransferCard(views, Actions, Host.Settings.TransferControls));
     }
 

@@ -332,6 +332,7 @@ public partial class MainWindow : Window
         if (sender is FrameworkElement { Tag: string tag } && tag.StartsWith("Caffeine.", StringComparison.Ordinal))
             _vm.SetCaffeineHotkey(tag["Caffeine.".Length..], modifiers, KeyInterop.VirtualKeyFromKey(key));
         else if (sender is FrameworkElement { Tag: "Pinned" }) _vm.SetPinnedHotkey(modifiers, KeyInterop.VirtualKeyFromKey(key));
+        else if (sender is FrameworkElement { Tag: "Transfers" }) _vm.SetTransferHotkey(modifiers, KeyInterop.VirtualKeyFromKey(key));
         else _vm.SetHotkey(modifiers, KeyInterop.VirtualKeyFromKey(key));
     }
 

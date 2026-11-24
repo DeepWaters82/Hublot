@@ -858,6 +858,12 @@
                         <local:SettingsCard Icon="&#xE8A5;" Header="{local:Tr Xfer.Expand}" Description="{local:Tr Xfer.ExpandDescription}">
                             <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding TransferExpandDetails}" />
                         </local:SettingsCard>
+                        <local:SettingsCard Icon="&#xE765;" Header="{local:Tr Xfer.Hotkey}" Description="{local:Tr Xfer.HotkeyDescription}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Tag="Transfers" Width="190" IsReadOnly="True" Text="{Binding TransferHotkeyText, Mode=OneWay}" TextAlignment="Center" VerticalAlignment="Center" Margin="0,0,16,0" Cursor="Hand" PreviewKeyDown="OnHotkeyKeyDown" IsEnabled="{Binding TransferHotkeyEnabled}" />
+                                <CheckBox Style="{StaticResource ToggleSwitch}" IsChecked="{Binding TransferHotkeyEnabled}" />
+                            </StackPanel>
+                        </local:SettingsCard>
                         </StackPanel>
                     </StackPanel>
 

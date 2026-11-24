@@ -23,7 +23,7 @@ internal sealed unsafe class TrayIcon : NativeWindow
     /// </summary>
     private const uint HoverDelayMs = 450;
     /// <summary>Raccourcis globaux : liste des éléments, mini-lecteur.</summary>
-    public const int ListHotkey = 1, PinnedHotkey = 2;
+    public const int ListHotkey = 1, PinnedHotkey = 2, TransfersHotkey = 3;
 
     private readonly uint _taskbarCreated, _settingsChanged, _settingsPreview, _updateAvailable;
     private nint _icon;
@@ -97,6 +97,7 @@ internal sealed unsafe class TrayIcon : NativeWindow
         _icon = 0;
         User32.UnregisterHotKey(Handle, ListHotkey);
         User32.UnregisterHotKey(Handle, PinnedHotkey);
+        User32.UnregisterHotKey(Handle, TransfersHotkey);
     }
 
     /// <summary>(Ré)enregistre le raccourci global ; faux si une autre application l'utilise déjà.</summary>
@@ -256,7 +257,7 @@ internal sealed unsafe class TrayIcon : NativeWindow
                 }
                 return 0;
 
-            case User32.WM_HOTKEY when wParam is ListHotkey or PinnedHotkey:
+            case User32.WM_HOTKEY when wParam is ListHotkey or PinnedHotkey or TransfersHotkey:
                 HotkeyPressed?.Invoke((int)wParam);
                 return 0;
 

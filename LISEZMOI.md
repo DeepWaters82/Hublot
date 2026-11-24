@@ -103,7 +103,8 @@ paramètres) et *Fermer*.
 ## Caféine : ce qu'il faut savoir
 
 - Une **tasse** dans la zone de notification, aux couleurs d'accentuation de Windows, à côté de l'icône
-  de Hublot. **Clic** : active / désactive (actif indéfiniment). Une courte fumée s'en échappe à l'activation.
+  de Hublot. **Clic** : active / désactive (actif indéfiniment). À l'activation, la tasse se remplit puis
+  deux bouffées de fumée s'en échappent.
 - **Clic droit** : *Actif indéfiniment*, *Maintenir actif pendant* (15 min à 8 h, ou *Autre durée…*),
   *Éteindre le PC dans* (15 min à 4 h, ou *Autre durée…*), *Désactiver le mode Caféine*, *Garder l'écran
   allumé*, *Paramètres de Caféine…*.
@@ -126,7 +127,8 @@ paramètres) et *Fermer*.
 - **Glisser** la carte la déplace (coins, haut ou bas au centre, autre écran) ; Hublot retient l'emplacement
   (en haut à droite par défaut).
 - **Boutons** pause / reprise et annuler (désactivables). **Clic** sur la carte : la fenêtre de Windows au
-  premier plan. **Clic droit › Fermer** : masquée jusqu'au prochain transfert.
+  premier plan. **Clic droit › Fermer** : masquée jusqu'au prochain transfert, ou jusqu'au **raccourci
+  Ctrl + Alt + T**, qui la réaffiche (ou la masque ; modifiable dans les paramètres).
 - **Conflit de noms** : la carte passe en ambre et propose les choix de Windows (*Remplacer*, *Ignorer*, *Me
   laisser décider*). En pause : ambre aussi ; terminé : vert, quelques secondes.
 - La fenêtre de Windows reste affichée : Hublot la lit (UI Automation) sans la remplacer. En mode *Moins de

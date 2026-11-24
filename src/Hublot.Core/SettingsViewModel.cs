@@ -132,6 +132,15 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         OnPropertyChanged($"CaffeineHotkey{which}Text");
     }
 
+    public bool TransferHotkeyEnabled { get => _s.TransferHotkeyEnabled; set => Set(() => _s.TransferHotkeyEnabled = value, preview: false); }
+    public string TransferHotkeyText => Describe(_s.TransferHotkey);
+
+    public void SetTransferHotkey(int modifiers, int key)
+    {
+        Set(() => _s.TransferHotkey = modifiers << 16 | key, preview: false);
+        OnPropertyChanged(nameof(TransferHotkeyText));
+    }
+
     public string MediaPinnedHotkeyText => Hotkeys.Describe(_s.MediaPinnedHotkeyModifiers, _s.MediaPinnedHotkeyKey);
 
     public void SetPinnedHotkey(int modifiers, int key)

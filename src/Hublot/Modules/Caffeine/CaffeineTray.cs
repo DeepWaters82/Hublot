@@ -14,8 +14,13 @@ internal sealed unsafe class CaffeineTray : NativeWindow
     private const uint WM_TRAY = Msg.WM_APP + 1;
     private const uint NIN_POPUPOPEN = Msg.WM_USER + 6, NIN_POPUPCLOSE = Msg.WM_USER + 7;
     private const nuint HoverTimer = 1, SteamTimer = 2;
-    private const uint HoverDelayMs = 450, SteamFrameMs = 60;
-    private const double SteamMs = 1600;
+    /// <summary>
+    /// Survol : la carte attend 800 ms (450 pour l’icône de Hublot) — on passe souvent sur la tasse pour cliquer.
+    /// Animation : remplissage (1,1 s, decelerate) puis deux bouffées de fumée (2,4 s, commencent à 70 % du remplissage),
+    /// une image toutes les 40 ms ; ensuite plus aucun minuteur.
+    /// </summary>
+    private const uint HoverDelayMs = 800, FrameMs = 40;
+    private const double FillMs = 1100, SteamMs = 2400, SteamDelayMs = FillMs * 0.7;
 
     /// <summary>Raccourcis : sans limite (bascule), pendant une durée, extinction, désactiver.</summary>
     public const int HotkeyIndefinite = 1, HotkeyTimed = 2, HotkeyShutdown = 3, HotkeyOff = 4;
@@ -30,7 +35,8 @@ internal sealed unsafe class CaffeineTray : NativeWindow
     private readonly Func<CaffeineSnapshot> _state;
     private nint _icon;
     private bool _added;
-    private long _steamStart;
+    private long _animStart;
+    private float _fillFrom;
 
     public event Action<CaffeineMode, int>? ModeRequested;      // mode, minutes (0 = sans limite / désactiver)
     public event Action<CaffeineMode>? CustomDurationRequested; // Timed ou Shutdown
@@ -98,22 +104,37 @@ internal sealed unsafe class CaffeineTray : NativeWindow
         Shell32.Shell_NotifyIconW(Shell32.NIM_MODIFY, &data);
     }
 
-    /// <summary>Fumée qui monte au-dessus de la tasse (1,6 s, une image toutes les 60 ms) : à l’activation.</summary>
-    public void AnimateSteam()
+    /// <summary>
+    /// La tasse se remplit de <paramref name="from"/> jusqu’à son niveau, puis la fumée monte : à l’activation
+    /// (depuis une tasse vide) et quand Caféine est prolongé (depuis le niveau affiché).
+    /// </summary>
+    public void AnimateFill(float from = 0)
     {
-        _steamStart = Environment.TickCount64;
-        User32.SetTimer(Handle, SteamTimer, SteamFrameMs, 0);
+        _fillFrom = Math.Clamp(from, 0, 1);
+        _animStart = Environment.TickCount64;
+        User32.SetTimer(Handle, SteamTimer, FrameMs, 0);
         Refresh();
+    }
+
+    private double AnimElapsed => _animStart == 0 ? double.MaxValue : Environment.TickCount64 - _animStart;
+
+    /// <summary>Niveau affiché : celui de l’état, ou en cours de remplissage.</summary>
+    private float ShownLevel(float level)
+    {
+        double e = AnimElapsed / FillMs;
+        return e >= 1 || level < 0 ? level : _fillFrom + (level - _fillFrom) * (float)Easing.Decelerate(e);
     }
 
     private float SteamPhase
     {
         get
         {
-            long elapsed = Environment.TickCount64 - _steamStart;
-            return elapsed < SteamMs && _steamStart != 0 ? (float)(elapsed / SteamMs) : -1;
+            double e = (AnimElapsed - SteamDelayMs) / SteamMs;
+            return e is >= 0 and < 1 ? (float)e : -1;
         }
     }
+
+    private bool Animating => AnimElapsed < SteamDelayMs + SteamMs;
 
     private NOTIFYICONDATAW Data(uint flags)
     {
@@ -138,7 +159,8 @@ internal sealed unsafe class CaffeineTray : NativeWindow
         var (ink, accent) = CaffeineIcon.TrayColors();
         uint fill = s.Mode == CaffeineMode.Shutdown ? CaffeineIcon.ShutdownColor(Theme.SystemUsesLightTheme()) : accent;
         nint old = _icon;
-        _icon = CaffeineIcon.Render(size, s.Level, fill, ink, s.Mode == CaffeineMode.Off ? -1 : SteamPhase);
+        bool on = s.Mode != CaffeineMode.Off;
+        _icon = CaffeineIcon.Render(size, on ? ShownLevel(s.Level) : s.Level, fill, ink, on ? SteamPhase : -1);
         if (old != 0) User32.DestroyIcon(old);
     }
 
@@ -231,10 +253,10 @@ internal sealed unsafe class CaffeineTray : NativeWindow
                 return 0;
 
             case Msg.WM_TIMER when (nuint)wParam == SteamTimer:
-                if (SteamPhase < 0)
+                if (!Animating)
                 {
                     User32.KillTimer(Handle, SteamTimer);
-                    _steamStart = 0;
+                    _animStart = 0;
                 }
                 Refresh();
                 return 0;

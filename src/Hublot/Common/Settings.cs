@@ -155,6 +155,9 @@ public sealed class Settings
     public PopupPosition TransferPosition { get; set; } = PopupPosition.TopRight;
     public PopupMonitor TransferMonitor { get; set; } = PopupMonitor.Primary;
     public string TransferMonitorDevice { get; set; } = "";
+    /// <summary>Raccourci qui affiche la carte (après l’avoir fermée) ou la masque : Ctrl + Alt + T par défaut.</summary>
+    public bool TransferHotkeyEnabled { get; set; } = true;
+    public int TransferHotkey { get; set; } = (ModControl | ModAlt) << 16 | 0x54; // T
 
     // Module « Alimentation »
     public bool PowerNotifyPlugged { get; set; } = true;
@@ -408,6 +411,8 @@ public sealed class Settings
         Add(nameof(TransferPosition), TransferPosition);
         Add(nameof(TransferMonitor), TransferMonitor);
         Add(nameof(TransferMonitorDevice), TransferMonitorDevice);
+        Add(nameof(TransferHotkeyEnabled), TransferHotkeyEnabled);
+        Add(nameof(TransferHotkey), TransferHotkey);
         Add(nameof(PowerNotifyPlugged), PowerNotifyPlugged);
         Add(nameof(PowerNotifyUnplugged), PowerNotifyUnplugged);
         Add(nameof(PowerNotifyLevel), PowerNotifyLevel);
@@ -518,6 +523,8 @@ public sealed class Settings
             case nameof(TransferPosition): TransferPosition = ParseEnum(value, TransferPosition); break;
             case nameof(TransferMonitor): TransferMonitor = ParseEnum(value, TransferMonitor); break;
             case nameof(TransferMonitorDevice): TransferMonitorDevice = value; break;
+            case nameof(TransferHotkeyEnabled): TransferHotkeyEnabled = ParseBool(value, TransferHotkeyEnabled); break;
+            case nameof(TransferHotkey): TransferHotkey = ParseInt(value, TransferHotkey, 0, 0xFFFFF); break;
             case nameof(PowerNotifyPlugged): PowerNotifyPlugged = ParseBool(value, PowerNotifyPlugged); break;
             case nameof(PowerNotifyUnplugged): PowerNotifyUnplugged = ParseBool(value, PowerNotifyUnplugged); break;
             case nameof(PowerNotifyLevel): PowerNotifyLevel = ParseBool(value, PowerNotifyLevel); break;

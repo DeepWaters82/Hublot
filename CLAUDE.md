@@ -352,7 +352,11 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
 - Extinction : `shutdown.exe /s /t 60 /d p:0:0 /c "…"` à l'échéance, popup cliquable → `shutdown.exe /a`.
   Clic sur l'avertissement : +30 min (durée) ou annulation (extinction).
 - Couleurs : accentuation (`TrayIconRenderer.TrayColors`), extinction orange (`CaffeineIcon.ShutdownColor`) ;
-  redessin à `ImmersiveColorSet`, recréation à `TaskbarCreated`. Fumée : images de 60 ms pendant 1,6 s.
+  redessin à `ImmersiveColorSet`, recréation à `TaskbarCreated`.
+- **3.9.1** : tasse qui occupe tout le carré (la fumée tient dans la bande du haut ; elle paraissait minuscule) ;
+  animation `CaffeineTray.AnimateFill(from)` : remplissage 1,1 s puis deux bouffées de fumée (2,4 s, dès 70 % du
+  remplissage), images de 40 ms, puis plus de minuteur ; prolongation (+30 min) = remplissage depuis le niveau affiché.
+  Survol de la tasse : 800 ms avant la carte (450 pour l'icône de Hublot). Tasse de la carte : 28 DIP dans l'anneau.
 - Raccourcis : `RegisterHotKey` ids 1–4 sur la fenêtre Caféine, `(mods << 16) | vk`, désactivés par défaut
   (Ctrl + Alt + Maj + K / T / E / X).
 - « Autre durée… » : le service lance `HublotCore.exe --caffeine timed|shutdown` (`CaffeineDurationDialog`) qui
@@ -395,7 +399,10 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
   au même emplacement : lecteur, puis transferts, puis popups (`UpdateReserve`). Plein écran : `UserIsBusy` à chaque
   lecture. Clic droit › Fermer → `ClosedByUser` : masquée jusqu'à une nouvelle opération ; une mise à jour pendant la
   sortie ne la fait pas revenir. Pas de silence au lancement.
-- `TransferCard` : 400 DIP, 200 par opération (3 au plus) ; accent en cours, `Caution` en pause / conflit, `Success`
+- Raccourci (3.9.1) : `TransferHotkey` (Ctrl + Alt + T par défaut, `(mods << 16) | vk`), id 3 sur la fenêtre de
+  `TrayIcon` (`TransfersHotkey`) → `ToggleFromHotkey` : carte affichée → masquée (comme Fermer), masquée → réaffichée
+  (`_closed` vidé) ; aucun transfert → popup « Aucun transfert en cours ».
+- `TransferCard` : 360 DIP, 176 par opération (3.9.1 ; 400 × 200 en 3.9.0, jugée trop grande), 3 au plus ; accent en cours, `Caution` en pause / conflit, `Success`
   terminé ; pourcentage animé entre deux lectures (450 ms). Parties : section × 100 + 0 (fenêtre de Windows au premier
   plan), 1 pause, 2 annuler, 3+ choix.
 - Diagnostic : `Hublot.exe --transfers FICHIER` (fenêtres ouvertes telles que lues, aucun clic). Planche :

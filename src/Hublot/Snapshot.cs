@@ -207,7 +207,7 @@ internal static class Snapshot
                 (two, -1),
             ];
             int m = PopupRenderer.ShadowMargin(scale);
-            int w = (int)MathF.Round(400 * scale);
+            int w = (int)MathF.Round(new Modules.Transfers.TransferCard(two, noop, true).Width * scale);
             var heights = states.Select(s => (int)MathF.Round(new Modules.Transfers.TransferCard(s.Views, noop, true).Height * scale)).ToArray();
             using var sheet = new Canvas(2 * (w + m) + m, heights.Sum() + (states.Length + 1) * m);
             sheet.Fill(0xFF808890);

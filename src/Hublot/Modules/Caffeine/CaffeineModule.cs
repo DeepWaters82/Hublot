@@ -112,7 +112,7 @@ internal sealed class CaffeineModule : Module
             _ => $"Caféine : désactivé ({origin})",
         });
         _shownLevel = Snapshot().Level;
-        if (mode != CaffeineMode.Off) _tray?.AnimateSteam();
+        if (mode != CaffeineMode.Off) _tray?.AnimateFill();
         else _tray?.Refresh();
         Reschedule();
         Host.Invalidate();
@@ -284,11 +284,12 @@ internal sealed class CaffeineModule : Module
     private void Extend()
     {
         if (_mode != CaffeineMode.Timed) return;
+        float before = Snapshot().Level;
         _end = _end.AddMinutes(ExtendMinutes);
         _warned = false;
         Log.Write($"Caféine : prolongé de {ExtendMinutes} min, jusqu’à {_end:HH:mm}");
         _shownLevel = Snapshot().Level;
-        _tray?.AnimateSteam();
+        _tray?.AnimateFill(before); // la tasse se remplit de nouveau
         Reschedule();
     }
 

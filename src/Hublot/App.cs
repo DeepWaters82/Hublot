@@ -51,6 +51,7 @@ internal sealed class App : IHost
         _tray.HotkeyPressed += id =>
         {
             if (id == TrayIcon.ListHotkey) ToggleList();
+            else if (id == TrayIcon.TransfersHotkey) Running.OfType<TransfersModule>().FirstOrDefault()?.ToggleFromHotkey();
             else if (Running.OfType<NowPlayingModule>().FirstOrDefault() is { } media) media.TogglePinned();
         };
         _tray.HoverStarted += OnTrayHover;
@@ -676,6 +677,9 @@ internal sealed class App : IHost
         bool pinned = _settings.ModuleNowPlaying && _settings.MediaPinnedHotkeyEnabled;
         if (!_tray.SetHotkey(TrayIcon.PinnedHotkey, pinned, _settings.MediaPinnedHotkeyModifiers, _settings.MediaPinnedHotkeyKey))
             Log.Write($"Raccourci du mini-lecteur indisponible (déjà utilisé ?) : modificateurs {_settings.MediaPinnedHotkeyModifiers}, touche 0x{_settings.MediaPinnedHotkeyKey:X2}");
+        bool transfers = _settings.ModuleTransfers && _settings.TransferHotkeyEnabled;
+        if (!_tray.SetHotkey(TrayIcon.TransfersHotkey, transfers, _settings.TransferHotkey >> 16, _settings.TransferHotkey & 0xFFFF))
+            Log.Write($"Raccourci des transferts indisponible (déjà utilisé ?) : modificateurs {_settings.TransferHotkey >> 16}, touche 0x{_settings.TransferHotkey & 0xFFFF:X2}");
     }
 
     /// <summary>

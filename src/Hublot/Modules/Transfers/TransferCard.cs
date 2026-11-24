@@ -1,4 +1,4 @@
-using Hublot.Common;
+﻿using Hublot.Common;
 using Hublot.Interop;
 using Hublot.Shell;
 
@@ -27,8 +27,8 @@ namespace Hublot.Modules.Transfers;
 /// </summary>
 internal sealed class TransferCard(IReadOnlyList<TransferView> views, TransferActions actions, bool controls) : CardContent
 {
-    private const float CardWidth = 400, Section = 200, Margin = 16, ButtonSize = 32;
-    private const float GraphTop = 90, GraphHeight = 44, RowTop = 146, RowGap = 22;
+    private const float CardWidth = 360, Section = 176, Margin = 14, ButtonSize = 30;
+    private const float GraphTop = 80, GraphHeight = 38, RowTop = 126, RowGap = 20;
     private const double ProgressMs = 450;
     private const int MaxChoices = 3;
 
@@ -74,9 +74,9 @@ internal sealed class TransferCard(IReadOnlyList<TransferView> views, TransferAc
 
     // ── Parties cliquables ───────────────────────────────────────────────────────────────
 
-    private static RectF CancelButton => new(CardWidth - 12 - ButtonSize, 14, ButtonSize, ButtonSize);
-    private static RectF PauseButton => new(CardWidth - 12 - 2 * ButtonSize - 4, 14, ButtonSize, ButtonSize);
-    private static RectF ChoiceRow(int i) => new(Margin, 104 + i * 31, CardWidth - 2 * Margin, 27);
+    private static RectF CancelButton => new(CardWidth - 10 - ButtonSize, 12, ButtonSize, ButtonSize);
+    private static RectF PauseButton => new(CardWidth - 10 - 2 * ButtonSize - 2, 12, ButtonSize, ButtonSize);
+    private static RectF ChoiceRow(int i) => new(Margin, 97 + i * 26, CardWidth - 2 * Margin, 23);
 
     private bool ShowsCancel(TransferView v) => controls && v.Phase is not TransferPhase.Done;
     private bool ShowsPause(TransferView v) => controls && v.Phase is TransferPhase.Running or TransferPhase.Paused;
@@ -139,15 +139,15 @@ internal sealed class TransferCard(IReadOnlyList<TransferView> views, TransferAc
             _ => t.Accent,
         };
 
-        using var title = new Font(ctx.S(14), Font.Title);
+        using var title = new Font(ctx.S(13.5f), Font.Title);
         using var caption = new Font(ctx.S(12), Font.Caption);
-        using var big = new Font(ctx.S(15), Font.Title);
-        using var tileIcons = new Font(ctx.S(20), Font.Icons);
-        using var icons = new Font(ctx.S(14), Font.Icons);
+        using var big = new Font(ctx.S(14), Font.Title);
+        using var tileIcons = new Font(ctx.S(18), Font.Icons);
+        using var icons = new Font(ctx.S(13), Font.Icons);
         using var small = new Font(ctx.S(12), Font.Icons);
 
         // Tuile : nature de l'opération, coche une fois terminé, alerte s'il faut décider.
-        var tile = Abs(new RectF(Margin, 16, 40, 40));
+        var tile = Abs(new RectF(Margin, 14, 36, 36));
         c.FillRoundRect(tile, ctx.S(8), tone);
         string glyph = v.Phase switch
         {
@@ -158,7 +158,7 @@ internal sealed class TransferCard(IReadOnlyList<TransferView> views, TransferAc
         c.DrawIcon(glyph, tileIcons, t.OnAccent, tile);
 
         // Boutons pause / annuler en haut à droite ; le titre s'arrête avant.
-        float textX = card.X + ctx.S(68), right = card.Right - ctx.S(Margin);
+        float textX = card.X + ctx.S(Margin + 36 + 11), right = card.Right - ctx.S(Margin);
         if (ShowsPause(v))
         {
             var pause = Abs(PauseButton);
@@ -173,8 +173,8 @@ internal sealed class TransferCard(IReadOnlyList<TransferView> views, TransferAc
             c.DrawIcon(CloseGlyph, icons, t.TextPrimary, cancel);
             if (!ShowsPause(v)) right = cancel.X - ctx.S(6);
         }
-        c.DrawText(v.Tile.Operation, title, t.TextPrimary, new RectF(textX, y0 + ctx.S(16), right - textX, ctx.S(20)), TextAlign.Near, ellipsis: true);
-        DrawRoute(c, t, caption, small, v.Tile, new RectF(textX, y0 + ctx.S(37), right - textX, ctx.S(18)), ctx.Scale);
+        c.DrawText(v.Tile.Operation, title, t.TextPrimary, new RectF(textX, y0 + ctx.S(13), right - textX, ctx.S(20)), TextAlign.Near, ellipsis: true);
+        DrawRoute(c, t, caption, small, v.Tile, new RectF(textX, y0 + ctx.S(32), right - textX, ctx.S(17)), ctx.Scale);
 
         if (v.Phase == TransferPhase.Attention)
         {
@@ -184,7 +184,7 @@ internal sealed class TransferCard(IReadOnlyList<TransferView> views, TransferAc
 
         // Pourcentage (ou « Terminé »), état, vitesse.
         float shown = ShownPercent(v, ctx.Now, ctx.Clock);
-        var stats = new RectF(card.X + ctx.S(Margin), y0 + ctx.S(64), card.Width - ctx.S(2 * Margin), ctx.S(22));
+        var stats = new RectF(card.X + ctx.S(Margin), y0 + ctx.S(56), card.Width - ctx.S(2 * Margin), ctx.S(20));
         string head = v.Phase == TransferPhase.Done ? L.T("Xfer.Done") : v.Percent < 0 ? "…" : L.Percent((int)MathF.Round(shown));
         c.DrawText(head, big, v.Phase == TransferPhase.Done ? t.Success : t.TextPrimary, stats);
         if (v.Phase == TransferPhase.Paused)
@@ -290,15 +290,15 @@ internal sealed class TransferCard(IReadOnlyList<TransferView> views, TransferAc
     {
         var (c, t, card) = (ctx.Canvas, ctx.Theme, ctx.Card);
         string text = string.IsNullOrEmpty(v.Tile.Attention) ? L.T("Xfer.ActionNeeded") : v.Tile.Attention;
-        var area = new RectF(card.X + ctx.S(Margin), y0 + ctx.S(64), card.Width - ctx.S(2 * Margin), ctx.S(18));
+        var area = new RectF(card.X + ctx.S(Margin), y0 + ctx.S(56), card.Width - ctx.S(2 * Margin), ctx.S(17));
         var (first, second) = SplitLines(c, text, caption, area.Width);
         c.DrawText(first, caption, t.TextPrimary, area, TextAlign.Near, ellipsis: true);
-        if (second.Length > 0) c.DrawText(second, caption, t.TextPrimary, new RectF(area.X, area.Y + ctx.S(18), area.Width, area.Height), TextAlign.Near, ellipsis: true);
+        if (second.Length > 0) c.DrawText(second, caption, t.TextPrimary, new RectF(area.X, area.Y + ctx.S(17), area.Width, area.Height), TextAlign.Near, ellipsis: true);
 
         var choices = v.Tile.Choices;
         if (choices.Count == 0)
         {
-            c.DrawText(L.T("Xfer.OpenWindow"), caption, t.TextTertiary, new RectF(area.X, y0 + ctx.S(108), area.Width, area.Height), TextAlign.Near, ellipsis: true);
+            c.DrawText(L.T("Xfer.OpenWindow"), caption, t.TextTertiary, new RectF(area.X, y0 + ctx.S(98), area.Width, area.Height), TextAlign.Near, ellipsis: true);
             return;
         }
         for (int i = 0; i < Math.Min(MaxChoices, choices.Count); i++)
