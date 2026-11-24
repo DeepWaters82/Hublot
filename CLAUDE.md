@@ -363,6 +363,9 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
 - **3.9.3** : tasse centrée — marge de gauche (paroi calée) reportée à droite pour l'anse, marge du haut (bord calé)
   reportée en bas pour le fond : marges égales à 16, 20, 24, 32 px (mesurées sur la planche). Tasse de la carte
   centrée dans l'anneau (plus de décalage de 1 DIP).
+- **3.9.4** : centrage **optique** — le corps de la tasse est centré (paroi droite en miroir de la gauche), l'anse
+  dépasse dans la marge de droite ; centrer le cadre anse comprise faisait paraître la tasse décalée à gauche
+  (capture de l'utilisateur). Tasse de la carte : 32 DIP.
 - Raccourcis : `RegisterHotKey` ids 1–4 sur la fenêtre Caféine, `(mods << 16) | vk`, désactivés par défaut
   (Ctrl + Alt + Maj + K / T / E / X).
 - « Autre durée… » : le service lance `HublotCore.exe --caffeine timed|shutdown` (`CaffeineDurationDialog`) qui

@@ -47,11 +47,11 @@ internal static class CaffeineIcon
         float Snap(float v) => (int)stroke % 2 == 1 ? MathF.Floor(v) + 0.5f : MathF.Round(v);
         uint line = level < 0 ? Shell.PopupRenderer.WithAlpha(ink, 0.6f) : ink;
 
-        // Centrée dans le carré (3.9.2) : parois et bord calés sur la grille, puis la marge de gauche (resp. du haut)
-        // reportée à droite pour l'anse (resp. en bas pour le fond) : mêmes marges des deux côtés à toutes les tailles.
-        // La fumée monte dans la marge du haut (coupée au bord du carré).
-        float left = Snap(box.X + 1.3f * u), right = Snap(box.X + 11.2f * u), rim = Snap(box.Y + 1.4f * u + stroke / 2);
-        float marginX = left - stroke / 2 - box.X, marginY = rim - stroke / 2 - box.Y;
+        // Centrage optique (3.9.3) : le CORPS de la tasse est centré dans le carré, l'anse dépasse à droite dans la marge
+        // (centrer le cadre anse comprise décalait visiblement la tasse vers la gauche). Paroi gauche et bord calés sur
+        // la grille, paroi droite en miroir ; marge du haut reportée en bas. La fumée monte dans la marge du haut.
+        float left = Snap(box.X + 3.3f * u), right = 2 * (box.X + box.Width / 2) - left, rim = Snap(box.Y + 2.0f * u + stroke / 2);
+        float marginY = rim - stroke / 2 - box.Y;
         float floor = box.Bottom - marginY - stroke / 2, height = floor - rim;
         float bend = rim + 0.5f * height, cx = (left + right) / 2, rx = (right - left) / 2;
         float ry = floor - bend;
@@ -106,7 +106,7 @@ internal static class CaffeineIcon
 
         // Anse : demi-ellipse accrochée à la paroi droite.
         Span<PointF> handle = stackalloc PointF[13];
-        float hrx = box.Right - marginX - stroke / 2 - right, hcy = rim + 0.27f * height, hry = 0.21f * height;
+        float hrx = Math.Min(2.8f * u, box.Right - stroke / 2 - right - 0.25f * u), hcy = rim + 0.27f * height, hry = 0.21f * height;
         for (int i = 0; i < handle.Length; i++)
         {
             double a = -Math.PI / 2 + Math.PI * i / (handle.Length - 1);
