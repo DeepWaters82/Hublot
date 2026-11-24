@@ -360,6 +360,9 @@ et journalise relectures et popups ; `--audio FICHIER` liste points de terminais
 - **3.9.2** : forme de mug (bord fermé, parois droites, fond arrondi, anse ronde, plus de soucoupe) sur toute la
   hauteur ; trait entier (`round(taille / 11)` : 1 px à 16, 2 px à 20-24) et parois / bord calés sur la grille.
   Planche `--snapshot` : tasses rendues à leur vraie taille puis agrandies ×2 pixel par pixel.
+- **3.9.3** : tasse centrée — marge de gauche (paroi calée) reportée à droite pour l'anse, marge du haut (bord calé)
+  reportée en bas pour le fond : marges égales à 16, 20, 24, 32 px (mesurées sur la planche). Tasse de la carte
+  centrée dans l'anneau (plus de décalage de 1 DIP).
 - Raccourcis : `RegisterHotKey` ids 1–4 sur la fenêtre Caféine, `(mods << 16) | vk`, désactivés par défaut
   (Ctrl + Alt + Maj + K / T / E / X).
 - « Autre durée… » : le service lance `HublotCore.exe --caffeine timed|shutdown` (`CaffeineDurationDialog`) qui

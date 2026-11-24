@@ -89,7 +89,7 @@ internal sealed class CaffeineCard(Func<CaffeineSnapshot> state, CaffeineCardKin
         // Tasse au centre, fumée à l’ouverture.
         float steam = s.Mode != CaffeineMode.Off && elapsed < SteamMs ? (float)(elapsed / SteamMs) : -1;
         float cup = ctx.S(28); // la tasse occupe tout son carré (3.9.0) : un peu plus petit pour rester dans l’anneau
-        CaffeineIcon.Draw(c, new RectF(cx - cup / 2, cy - cup / 2 - ctx.S(1), cup, cup), s.Level, accent, t.TextPrimary, steam);
+        CaffeineIcon.Draw(c, new RectF(cx - cup / 2, cy - cup / 2, cup, cup), s.Level, accent, t.TextPrimary, steam);
 
         // Textes.
         var (title, value, hint) = Texts(s);

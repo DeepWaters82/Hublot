@@ -47,9 +47,14 @@ internal static class CaffeineIcon
         float Snap(float v) => (int)stroke % 2 == 1 ? MathF.Floor(v) + 0.5f : MathF.Round(v);
         uint line = level < 0 ? Shell.PopupRenderer.WithAlpha(ink, 0.6f) : ink;
 
-        float left = Snap(box.X + 1.5f * u), right = Snap(box.X + 11.3f * u), rim = Snap(box.Y + 3.4f * u);
-        float bend = box.Y + 9.8f * u, cx = (left + right) / 2, rx = (right - left) / 2;
-        float ry = box.Y + 14.9f * u - stroke / 2 - bend;
+        // Centrée dans le carré (3.9.2) : parois et bord calés sur la grille, puis la marge de gauche (resp. du haut)
+        // reportée à droite pour l'anse (resp. en bas pour le fond) : mêmes marges des deux côtés à toutes les tailles.
+        // La fumée monte dans la marge du haut (coupée au bord du carré).
+        float left = Snap(box.X + 1.3f * u), right = Snap(box.X + 11.2f * u), rim = Snap(box.Y + 1.4f * u + stroke / 2);
+        float marginX = left - stroke / 2 - box.X, marginY = rim - stroke / 2 - box.Y;
+        float floor = box.Bottom - marginY - stroke / 2, height = floor - rim;
+        float bend = rim + 0.5f * height, cx = (left + right) / 2, rx = (right - left) / 2;
+        float ry = floor - bend;
 
         // Café : intérieur de la tasse (retrait du trait et d'un petit jour), du fond jusqu'au niveau.
         if (level > 0.01f)
@@ -101,7 +106,7 @@ internal static class CaffeineIcon
 
         // Anse : demi-ellipse accrochée à la paroi droite.
         Span<PointF> handle = stackalloc PointF[13];
-        float hcy = box.Y + 7.0f * u, hrx = 3.3f * u, hry = 2.6f * u;
+        float hrx = box.Right - marginX - stroke / 2 - right, hcy = rim + 0.27f * height, hry = 0.21f * height;
         for (int i = 0; i < handle.Length; i++)
         {
             double a = -Math.PI / 2 + Math.PI * i / (handle.Length - 1);
